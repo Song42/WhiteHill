@@ -26,7 +26,7 @@ class SongModel extends Song {
       coverUrl: album?['cover_url'] as String?,
       lyricsChord: json['lyrics_chord'] as String?,
       youtubeUrl: json['youtube_url'] as String?,
-      storagePath: json['storage_path'] as String?,
+      storagePath: json['audio_path'] as String?,
       bpm: json['bpm'] as int?,
       key: json['key'] as String?,
     );

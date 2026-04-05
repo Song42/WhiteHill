@@ -14,11 +14,9 @@ class HomeScreen extends ConsumerWidget {
 
     return RefreshIndicator(
       onRefresh: () async {
-        try {
-          await ref.refresh(songsProvider.future);
-        } catch (_) {
-          // error state is shown via the provider, no need to rethrow
-        }
+        ref.invalidate(songsProvider);
+        // ignore errors — the provider's error state handles them
+        await ref.read(songsProvider.future).then((_) {}, onError: (_) {});
       },
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),

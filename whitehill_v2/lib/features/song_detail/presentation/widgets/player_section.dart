@@ -6,6 +6,7 @@ class PlayerSection extends ConsumerStatefulWidget {
   final String title;
   final String artist;
   final String? thumbnailUrl;
+  final String? storagePath;
   final VoidCallback onScrollToLyrics;
 
   const PlayerSection({
@@ -14,6 +15,7 @@ class PlayerSection extends ConsumerStatefulWidget {
     required this.artist,
     required this.onScrollToLyrics,
     this.thumbnailUrl,
+    this.storagePath,
   });
 
   @override
@@ -29,6 +31,12 @@ class _PlayerSectionState extends ConsumerState<PlayerSection>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final path = widget.storagePath;
+      if (path != null && mounted) {
+        ref.read(playerProvider.notifier).load(path);
+      }
+    });
     _loopController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -90,8 +98,15 @@ class _PlayerSectionState extends ConsumerState<PlayerSection>
                     child: widget.thumbnailUrl != null
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(20),
-                            child: Image.network(widget.thumbnailUrl!,
-                                fit: BoxFit.cover),
+                            child: Image.network(
+                              widget.thumbnailUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Icon(
+                                Icons.music_note_rounded,
+                                size: 88,
+                                color: colorScheme.onPrimaryContainer,
+                              ),
+                            ),
                           )
                         : Icon(
                             Icons.music_note_rounded,
@@ -158,13 +173,19 @@ class _PlayerSectionState extends ConsumerState<PlayerSection>
                           shape: const CircleBorder(),
                           padding: const EdgeInsets.all(16),
                         ),
-                        onPressed: notifier.togglePlay,
-                        child: Icon(
-                          player.isPlaying
-                              ? Icons.pause_rounded
-                              : Icons.play_arrow_rounded,
-                          size: 32,
-                        ),
+                        onPressed: player.isLoading ? null : notifier.togglePlay,
+                        child: player.isLoading
+                            ? const SizedBox(
+                                width: 32,
+                                height: 32,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : Icon(
+                                player.isPlaying
+                                    ? Icons.pause_rounded
+                                    : Icons.play_arrow_rounded,
+                                size: 32,
+                              ),
                       ),
                       const SizedBox(width: 12),
                       IconButton(

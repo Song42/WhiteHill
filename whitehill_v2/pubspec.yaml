@@ -12,6 +12,8 @@ dependencies:
   flutter_riverpod: ^2.6.1
   supabase_flutter: ^2.9.0
   flutter_dotenv: ^5.2.1
+  just_audio: ^0.9.40
+  file_picker: ^8.0.0
 
 dev_dependencies:
   flutter_test:

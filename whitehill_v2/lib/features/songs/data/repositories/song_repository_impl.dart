@@ -7,7 +7,7 @@ import '../../domain/repositories/song_repository.dart';
 import '../models/song_model.dart';
 
 const _songSelect =
-    'id, title, lyrics_chord, youtube_url, storage_path, bpm, key, '
+    'id, title, lyrics_chord, youtube_url, audio_path, bpm, key, '
     'albums(title, cover_url, artists(name, image_url))';
 
 class SongRepositoryImpl implements SongRepository {

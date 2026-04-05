@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:whitehill_v2/features/admin/presentation/screens/admin_board_screen.dart';
 import 'package:whitehill_v2/features/home/presentation/screens/home_screen.dart';
 import 'package:whitehill_v2/features/library/presentation/screens/library_screen.dart';
 import 'package:whitehill_v2/features/search/presentation/screens/search_screen.dart';
@@ -13,6 +14,7 @@ class AppShell extends ConsumerWidget {
     HomeScreen(),
     SearchScreen(),
     LibraryScreen(),
+    AdminBoardScreen(),
   ];
 
   @override
@@ -40,6 +42,11 @@ class AppShell extends ConsumerWidget {
             icon: Icon(Icons.library_music_outlined),
             selectedIcon: Icon(Icons.library_music),
             label: 'Library',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.admin_panel_settings_outlined),
+            selectedIcon: Icon(Icons.admin_panel_settings),
+            label: 'Admin',
           ),
         ],
       ),

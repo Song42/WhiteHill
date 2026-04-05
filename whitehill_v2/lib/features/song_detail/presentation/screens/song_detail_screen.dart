@@ -50,6 +50,7 @@ class _SongDetailScreenState extends State<SongDetailScreen> {
             title: widget.song.title,
             artist: widget.song.artistName ?? '',
             thumbnailUrl: widget.song.coverUrl,
+            storagePath: widget.song.storagePath,
             onScrollToLyrics: _goToLyrics,
           ),
           LyricsSection(
