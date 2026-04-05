@@ -46,7 +46,7 @@ List<_Segment> _splitOnSpaces(List<_Segment> segments) {
       result.add(_Segment(i == 0 ? seg.chord : '', text));
     }
   }
-  return result.where((s) => s.text.isNotEmpty).toList();
+  return result.where((s) => s.text.isNotEmpty || s.chord.isNotEmpty).toList();
 }
 
 /// Groups segments into word groups. A group ends when its last segment's
@@ -220,12 +220,12 @@ class _ChordLine extends StatelessWidget {
         );
     final lyricStyle = Theme.of(context).textTheme.bodyLarge!;
 
-    Row buildRow(List<List<_Segment>> groups) => Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
+    Widget buildRow(List<List<_Segment>> groups, double maxWidth) => Wrap(
+          crossAxisAlignment: WrapCrossAlignment.start,
           children: groups
               .expand((g) => g)
-              .map((seg) => IntrinsicWidth(
+              .map((seg) => ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: maxWidth),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
@@ -238,7 +238,11 @@ class _ChordLine extends StatelessWidget {
                               style: chordStyle,
                             ),
                           ),
-                        Text(seg.text, style: lyricStyle),
+                        Text(
+                          seg.text,
+                          style: lyricStyle,
+                          softWrap: true,
+                        ),
                       ],
                     ),
                   ))
@@ -248,7 +252,7 @@ class _ChordLine extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final lines = _splitToFit(wordGroups, lyricStyle, constraints.maxWidth);
-        if (lines.length == 1) return buildRow(lines.first);
+        if (lines.length == 1) return buildRow(lines.first, constraints.maxWidth);
 
         final gap = showChords ? 18.0 : 6.0;
         return Column(
@@ -256,7 +260,7 @@ class _ChordLine extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             for (int i = 0; i < lines.length; i++) ...[
-              buildRow(lines[i]),
+              buildRow(lines[i], constraints.maxWidth),
               if (i < lines.length - 1) SizedBox(height: gap),
             ],
           ],

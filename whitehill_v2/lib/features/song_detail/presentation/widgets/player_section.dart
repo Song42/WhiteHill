@@ -101,12 +101,11 @@ class _PlayerSectionState extends ConsumerState<PlayerSection>
                   ),
                   const SizedBox(height: 28),
                   // Title
-                  Text(
-                    widget.title,
+                  _AutoScrollText(
+                    text: widget.title,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
-                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 6),
                   // Artist
@@ -211,6 +210,198 @@ class _PlayerSectionState extends ConsumerState<PlayerSection>
         ),
         const SizedBox(height: 24),
       ],
+    );
+  }
+}
+
+class _AutoScrollText extends StatefulWidget {
+  final String text;
+  final TextStyle? style;
+
+  const _AutoScrollText({required this.text, this.style});
+
+  @override
+  State<_AutoScrollText> createState() => _AutoScrollTextState();
+}
+
+class _AutoScrollTextState extends State<_AutoScrollText> {
+  final _scrollController = ScrollController();
+  bool _isScrolling = false;
+  bool _showLeftFade = false;
+  bool _showRightFade = false;
+  DateTime? _pauseUntil;
+  bool _isUserInteracting = false;
+
+  bool get _isAutoScrollPaused {
+    final pauseUntil = _pauseUntil;
+    if (_isUserInteracting) return true;
+    if (pauseUntil == null) return false;
+    return DateTime.now().isBefore(pauseUntil);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_handleScrollChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant _AutoScrollText oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.text != widget.text && _scrollController.hasClients) {
+      _scrollController.jumpTo(0);
+      _pauseUntil = null;
+      _isUserInteracting = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_handleScrollChanged);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _handleScrollChanged() {
+    if (!_scrollController.hasClients || !mounted) return;
+    final position = _scrollController.position;
+    final maxExtent = position.maxScrollExtent;
+    final pixels = position.pixels;
+    final nextShowLeftFade = pixels > 0.5;
+    final nextShowRightFade = pixels < maxExtent - 0.5;
+    if (nextShowLeftFade != _showLeftFade ||
+        nextShowRightFade != _showRightFade) {
+      setState(() {
+        _showLeftFade = nextShowLeftFade;
+        _showRightFade = nextShowRightFade;
+      });
+    }
+  }
+
+  void _pauseAutoScroll() {
+    _pauseUntil = DateTime.now().add(const Duration(seconds: 2));
+  }
+
+  Future<void> _waitWhilePaused() async {
+    while (mounted && _isAutoScrollPaused) {
+      await Future.delayed(const Duration(milliseconds: 150));
+    }
+  }
+
+  void _startScrolling() {
+    if (_isScrolling) return;
+    _isScrolling = true;
+    _scrollLoop();
+  }
+
+  Future<void> _scrollLoop() async {
+    while (mounted) {
+      await Future.delayed(const Duration(seconds: 2));
+      if (!mounted) break;
+      await _waitWhilePaused();
+      if (!mounted) break;
+
+      final maxExtent = _scrollController.hasClients
+          ? _scrollController.position.maxScrollExtent
+          : 0.0;
+      if (maxExtent <= 0) break;
+
+      await _scrollController.animateTo(
+        maxExtent,
+        duration: Duration(
+            milliseconds: (maxExtent * 25).clamp(2000, 8000).toInt()),
+        curve: Curves.linear,
+      );
+      if (!mounted) break;
+
+      await Future.delayed(const Duration(seconds: 1));
+      if (!mounted) break;
+      await _waitWhilePaused();
+      if (!mounted) break;
+
+      _scrollController.jumpTo(0);
+    }
+    if (mounted) _isScrolling = false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final style = widget.style ?? DefaultTextStyle.of(context).style;
+        final tp = TextPainter(
+          text: TextSpan(text: widget.text, style: style),
+          maxLines: 1,
+          textDirection: TextDirection.ltr,
+        )..layout(maxWidth: double.infinity);
+
+        final overflows = tp.width > constraints.maxWidth;
+
+        if (!overflows) {
+          return Text(
+            widget.text,
+            style: widget.style,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+          );
+        }
+
+        // No whitespace → no natural break point; force character wrapping.
+        if (!widget.text.contains(' ')) {
+          return Text(
+            widget.text,
+            style: widget.style,
+            textAlign: TextAlign.center,
+            softWrap: true,
+          );
+        }
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _handleScrollChanged();
+          _startScrolling();
+        });
+
+        Widget child = NotificationListener<ScrollNotification>(
+          onNotification: (notification) {
+            if (notification is ScrollStartNotification &&
+                notification.dragDetails != null) {
+              _isUserInteracting = true;
+              _pauseAutoScroll();
+            } else if (notification is ScrollUpdateNotification &&
+                notification.dragDetails != null) {
+              _pauseAutoScroll();
+            } else if (notification is ScrollEndNotification) {
+              _isUserInteracting = false;
+              _pauseAutoScroll();
+            }
+            return false;
+          },
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Text(widget.text, style: widget.style, maxLines: 1),
+          ),
+        );
+
+        if (!_showLeftFade && !_showRightFade) return child;
+
+        final colors = <Color>[
+          _showLeftFade ? Colors.transparent : Colors.white,
+          Colors.white,
+          Colors.white,
+          _showRightFade ? Colors.transparent : Colors.white,
+        ];
+
+        return ShaderMask(
+          shaderCallback: (bounds) => LinearGradient(
+            stops: const [0.0, 0.08, 0.92, 1.0],
+            colors: colors,
+          ).createShader(bounds),
+          blendMode: BlendMode.dstIn,
+          child: child,
+        );
+      },
     );
   }
 }
