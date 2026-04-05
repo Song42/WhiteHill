@@ -1,0 +1,87 @@
+# ─── Sensitive / Secrets ────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+**/google-services.json
+**/GoogleService-Info.plist
+**/keystore.jks
+**/key.properties
+**/service-account*.json
+supabase/.env
+supabase/config.toml.local
+
+
+# ─── Flutter / Dart ──────────────────────────────────────────────────────────
+**/pubspec.lock        # keep only for app (not packages); see note below
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.pub-cache/
+**/.pub/
+**/build/
+**/doc/api/
+**/.metadata
+.packages
+*.dart.js
+*.dart.js.deps
+*.dart.js.map
+*.info.json
+
+
+# ─── Android ─────────────────────────────────────────────────────────────────
+**/android/.gradle/
+**/android/captures/
+**/android/gradlew
+**/android/gradlew.bat
+**/android/local.properties
+**/android/*.iml
+**/android/key.properties
+# Generated files
+**/android/app/google-services.json
+
+
+# ─── iOS / macOS ─────────────────────────────────────────────────────────────
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Flutter/Generated.xcconfig
+**/ios/Pods/
+**/ios/Podfile.lock
+**/ios/.symlinks/
+**/macos/Flutter/flutter_export_environment.sh
+**/macos/Flutter/GeneratedPluginRegistrant.swift
+**/macos/Pods/
+**/macos/Podfile.lock
+**/macos/.symlinks/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcshareddata/
+
+
+# ─── Web ─────────────────────────────────────────────────────────────────────
+**/web/flutter_service_worker.js
+
+
+# ─── IDEs ────────────────────────────────────────────────────────────────────
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+
+# ─── OS ──────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+
+# ─── Misc ────────────────────────────────────────────────────────────────────
+*.log
+*.orig
+*.bak
+coverage/
+.coverage
+
+
+# ─── Claude ──────────────────────────────────────────────────────────────────
+CLAUDE.md
+docs/
