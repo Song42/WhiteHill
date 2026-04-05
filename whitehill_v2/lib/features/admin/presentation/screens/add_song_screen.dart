@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whitehill_v2/features/admin/presentation/providers/add_song_provider.dart';
+import 'package:whitehill_v2/features/admin/presentation/providers/artist_album_lookup_provider.dart';
 import 'package:whitehill_v2/features/admin/presentation/widgets/add_song_step1.dart';
 import 'package:whitehill_v2/features/admin/presentation/widgets/add_song_step2.dart';
 import 'package:whitehill_v2/features/admin/presentation/widgets/add_song_step3.dart';
@@ -25,6 +26,9 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
   final _bpmCtrl = TextEditingController();
   final _keyCtrl = TextEditingController();
   final _lyricsCtrl = TextEditingController();
+
+  String? _titleError;
+  String? _artistError;
 
   @override
   void dispose() {
@@ -55,20 +59,42 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
 
   bool _validateStep(int step) {
     if (step == 0) {
-      if (_titleCtrl.text.trim().isEmpty || _artistCtrl.text.trim().isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Title and Artist are required')),
-        );
+      final titleEmpty = _titleCtrl.text.trim().isEmpty;
+      final artistEmpty = _artistCtrl.text.trim().isEmpty;
+      if (titleEmpty || artistEmpty) {
+        setState(() {
+          if (titleEmpty) _titleError = 'Required';
+          if (artistEmpty) _artistError = 'Required';
+        });
         return false;
       }
     }
     return true;
   }
 
-  void _next() {
+  Future<void> _next() async {
     final currentStep = ref.read(addSongFormProvider).currentStep;
     if (!_validateStep(currentStep)) return;
+
+    if (currentStep == 0) {
+      final formState = ref.read(addSongFormProvider);
+      final exists = await checkSongTitleExists(
+        title: _titleCtrl.text.trim(),
+        artistName: _artistCtrl.text.trim(),
+        albumTitle: _albumCtrl.text.trim(),
+        artistId: formState.selectedArtistId,
+        albumId: formState.selectedAlbumId,
+      );
+      if (!mounted) return;
+      if (exists) {
+        setState(() => _titleError =
+            'This title already exists for the selected artist / album');
+        return;
+      }
+    }
+
     _saveCurrentStep(currentStep);
+    FocusScope.of(context).unfocus();
     ref.read(addSongFormProvider.notifier).nextStep();
     _pageController.nextPage(
       duration: const Duration(milliseconds: 300),
@@ -109,7 +135,10 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
         centerTitle: true,
         surfaceTintColor: Colors.transparent,
       ),
-      body: Column(
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        behavior: HitTestBehavior.translucent,
+        child: Column(
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
@@ -130,6 +159,10 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
                   albumController: _albumCtrl,
                   bpmController: _bpmCtrl,
                   keyController: _keyCtrl,
+                  titleError: _titleError,
+                  onTitleChanged: () => setState(() => _titleError = null),
+                  artistError: _artistError,
+                  onArtistChanged: () => setState(() => _artistError = null),
                 ),
                 AddSongStep2(lyricsController: _lyricsCtrl),
                 const AddSongStep3(),
@@ -145,6 +178,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
             isSubmitting: isSubmitting,
           ),
         ],
+        ),
       ),
     );
   }

@@ -6,15 +6,20 @@ import '../widgets/player_section.dart';
 
 class SongDetailScreen extends StatefulWidget {
   final Song song;
+  final int initialPage;
 
-  const SongDetailScreen({super.key, required this.song});
+  const SongDetailScreen({
+    super.key,
+    required this.song,
+    this.initialPage = 0,
+  });
 
   @override
   State<SongDetailScreen> createState() => _SongDetailScreenState();
 }
 
 class _SongDetailScreenState extends State<SongDetailScreen> {
-  final _pageController = PageController();
+  late final _pageController = PageController(initialPage: widget.initialPage);
 
   void _goToLyrics() => _pageController.animateToPage(
         1,

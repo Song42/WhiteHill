@@ -10,6 +10,8 @@ const _songSelect =
     'id, title, lyrics_chord, youtube_url, audio_path, bpm, key, '
     'albums(title, cover_url, artists(name, image_url))';
 
+const _kImageBucket = 'media';
+
 class SongRepositoryImpl implements SongRepository {
   final SupabaseClient _client;
 
@@ -21,7 +23,7 @@ class SongRepositoryImpl implements SongRepository {
             .from('songs')
             .select(_songSelect)
             .order('title');
-        return (data as List).map((e) => SongModel.fromJson(e)).toList();
+        return (data as List).map((e) => SongModel.fromJson(_resolveJson(e))).toList();
       });
 
   @override
@@ -33,8 +35,23 @@ class SongRepositoryImpl implements SongRepository {
             .maybeSingle();
 
         if (data == null) throw const SongNotFoundException('Song not found.');
-        return SongModel.fromJson(data);
+        return SongModel.fromJson(_resolveJson(data));
       });
+
+  /// Converts a storage path in `cover_url` to a public URL so that
+  /// [Image.network] can load the thumbnail directly.
+  Map<String, dynamic> _resolveJson(Map<String, dynamic> json) {
+    final album = json['albums'] as Map<String, dynamic>?;
+    if (album == null) return json;
+    final rawPath = album['cover_url'] as String?;
+    if (rawPath == null || rawPath.startsWith('http')) return json;
+    final publicUrl =
+        _client.storage.from(_kImageBucket).getPublicUrl(rawPath);
+    return {
+      ...json,
+      'albums': {...album, 'cover_url': publicUrl},
+    };
+  }
 
   /// Translates low-level exceptions into [SongException] subtypes.
   Future<T> _guard<T>(Future<T> Function() fn) async {

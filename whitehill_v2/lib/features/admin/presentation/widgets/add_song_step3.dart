@@ -2,7 +2,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whitehill_v2/features/admin/presentation/providers/add_song_provider.dart';
-
 class AddSongStep3 extends ConsumerWidget {
   const AddSongStep3({super.key});
 
@@ -10,6 +9,9 @@ class AddSongStep3 extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(addSongFormProvider);
     final notifier = ref.read(addSongFormProvider.notifier);
+
+    // Already resolved when the user selected the album in step 1 — no extra request.
+    final existingThumbnail = state.existingCoverFilename;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -50,6 +52,9 @@ class AddSongStep3 extends ConsumerWidget {
             label: 'Thumbnail Image',
             icon: Icons.image_outlined,
             fileName: state.thumbnailFileName,
+            hint: existingThumbnail != null
+                ? '$existingThumbnail already exists — tap to replace'
+                : null,
             onPick: () async {
               try {
                 final result = await FilePicker.platform.pickFiles(
@@ -82,6 +87,7 @@ class _FilePickerTile extends StatelessWidget {
   final String label;
   final IconData icon;
   final String? fileName;
+  final String? hint;
   final VoidCallback onPick;
 
   const _FilePickerTile({
@@ -89,6 +95,7 @@ class _FilePickerTile extends StatelessWidget {
     required this.icon,
     required this.fileName,
     required this.onPick,
+    this.hint,
   });
 
   @override
@@ -127,11 +134,13 @@ class _FilePickerTile extends StatelessWidget {
                       style: Theme.of(context).textTheme.labelLarge),
                   const SizedBox(height: 2),
                   Text(
-                    isPicked ? fileName! : 'Tap to select',
+                    isPicked ? fileName! : (hint ?? 'Tap to select'),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: isPicked
                               ? colorScheme.primary
-                              : colorScheme.onSurfaceVariant,
+                              : hint != null
+                                  ? colorScheme.tertiary
+                                  : colorScheme.onSurfaceVariant,
                         ),
                     overflow: TextOverflow.ellipsis,
                   ),

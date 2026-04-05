@@ -6,6 +6,7 @@ class SongCard extends StatelessWidget {
   final String artist;
   final String? thumbnailUrl;
   final VoidCallback onTap;
+  final VoidCallback onLyricsTap;
 
   const SongCard({
     super.key,
@@ -14,6 +15,7 @@ class SongCard extends StatelessWidget {
     required this.artist,
     this.thumbnailUrl,
     required this.onTap,
+    required this.onLyricsTap,
   });
 
   @override
@@ -54,9 +56,12 @@ class SongCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(
-                Icons.chevron_right,
-                color: theme.colorScheme.onSurfaceVariant,
+              IconButton(
+                onPressed: onLyricsTap,
+                icon: Icon(
+                  Icons.lyrics_outlined,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),

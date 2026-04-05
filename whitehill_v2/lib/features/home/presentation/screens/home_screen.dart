@@ -53,11 +53,14 @@ class HomeScreen extends ConsumerWidget {
                       const SizedBox(height: 16),
                       const Text('No songs yet.'),
                       const SizedBox(height: 16),
-                      FilledButton.icon(
-                        onPressed: () => ref.invalidate(songsProvider),
-                        icon: const Icon(Icons.refresh_rounded),
-                        label: const Text('Refresh'),
-                      ),
+                      if (songsAsync.isLoading)
+                        const CircularProgressIndicator()
+                      else
+                        FilledButton.icon(
+                          onPressed: () => ref.invalidate(songsProvider),
+                          icon: const Icon(Icons.refresh_rounded),
+                          label: const Text('Refresh'),
+                        ),
                     ],
                   ),
                 ),
@@ -69,30 +72,35 @@ class HomeScreen extends ConsumerWidget {
                 itemCount: songs.length,
                 itemBuilder: (context, index) {
                   final song = songs[index];
+                  void openDetail(int initialPage) => Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                          pageBuilder: (_, _, _) => SongDetailScreen(
+                            song: song,
+                            initialPage: initialPage,
+                          ),
+                          transitionsBuilder: (_, animation, _, child) {
+                            return SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(0, 1),
+                                end: Offset.zero,
+                              ).animate(CurvedAnimation(
+                                parent: animation,
+                                curve: Curves.easeInOut,
+                              )),
+                              child: child,
+                            );
+                          },
+                          transitionDuration: const Duration(milliseconds: 400),
+                        ),
+                      );
                   return SongCard(
                     id: song.id,
                     title: song.title,
                     artist: song.artistName ?? '',
                     thumbnailUrl: song.coverUrl,
-                    onTap: () => Navigator.push(
-                      context,
-                      PageRouteBuilder(
-                        pageBuilder: (_, _, _) => SongDetailScreen(song: song),
-                        transitionsBuilder: (_, animation, _, child) {
-                          return SlideTransition(
-                            position: Tween<Offset>(
-                              begin: const Offset(0, 1),
-                              end: Offset.zero,
-                            ).animate(CurvedAnimation(
-                              parent: animation,
-                              curve: Curves.easeInOut,
-                            )),
-                            child: child,
-                          );
-                        },
-                        transitionDuration: const Duration(milliseconds: 400),
-                      ),
-                    ),
+                    onTap: () => openDetail(0),
+                    onLyricsTap: () => openDetail(1),
                   );
                 },
               ),
