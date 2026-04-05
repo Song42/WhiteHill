@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:whitehill_v2/features/songs/domain/entities/song.dart';
+
+import '../../../songs/domain/entities/song.dart';
 import '../widgets/lyrics_section.dart';
 import '../widgets/player_section.dart';
 
@@ -47,10 +48,7 @@ class _SongDetailScreenState extends State<SongDetailScreen> {
         scrollDirection: Axis.vertical,
         children: [
           PlayerSection(
-            title: widget.song.title,
-            artist: widget.song.artistName ?? '',
-            thumbnailUrl: widget.song.coverUrl,
-            storagePath: widget.song.storagePath,
+            song: widget.song,
             onScrollToLyrics: _goToLyrics,
           ),
           LyricsSection(
