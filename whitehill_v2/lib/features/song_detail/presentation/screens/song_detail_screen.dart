@@ -1,20 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:whitehill_v2/features/songs/domain/entities/song.dart';
 import '../widgets/lyrics_section.dart';
 import '../widgets/player_section.dart';
 
 class SongDetailScreen extends StatefulWidget {
-  final String songId;
-  final String title;
-  final String artist;
-  final String? thumbnailUrl;
+  final Song song;
 
-  const SongDetailScreen({
-    super.key,
-    required this.songId,
-    required this.title,
-    required this.artist,
-    this.thumbnailUrl,
-  });
+  const SongDetailScreen({super.key, required this.song});
 
   @override
   State<SongDetailScreen> createState() => _SongDetailScreenState();
@@ -55,12 +47,13 @@ class _SongDetailScreenState extends State<SongDetailScreen> {
         scrollDirection: Axis.vertical,
         children: [
           PlayerSection(
-            title: widget.title,
-            artist: widget.artist,
-            thumbnailUrl: widget.thumbnailUrl,
+            title: widget.song.title,
+            artist: widget.song.artistName ?? '',
+            thumbnailUrl: widget.song.coverUrl,
             onScrollToLyrics: _goToLyrics,
           ),
           LyricsSection(
+            lyricsChord: widget.song.lyricsChord,
             onScrollToPlayer: _goToPlayer,
           ),
         ],
