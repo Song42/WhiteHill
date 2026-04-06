@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:whitehill_v2/core/player/player_provider.dart';
 import 'package:whitehill_v2/core/widgets/error_view.dart';
 import 'package:whitehill_v2/features/home/presentation/widgets/song_card.dart';
 import 'package:whitehill_v2/features/song_detail/presentation/screens/song_detail_screen.dart';
@@ -94,6 +95,8 @@ class HomeScreen extends ConsumerWidget {
                           transitionDuration: const Duration(milliseconds: 400),
                         ),
                       );
+                  final player = ref.watch(globalPlayerProvider);
+                  final isCurrent = player.currentSong?.id == song.id;
                   return SongCard(
                     id: song.id,
                     title: song.title,
@@ -101,6 +104,34 @@ class HomeScreen extends ConsumerWidget {
                     thumbnailUrl: song.coverUrl,
                     onTap: () => openDetail(0),
                     onLyricsTap: () => openDetail(1),
+                    isPlaying: isCurrent && player.isPlaying,
+                    onPlayTap: song.storagePath != null
+                        ? () async {
+                            final notifier =
+                                ref.read(globalPlayerProvider.notifier);
+                            try {
+                              if (isCurrent) {
+                                notifier.togglePlay();
+                              } else {
+                                await notifier.playSong(song);
+                                notifier.play();
+                              }
+                            } on AudioPlaybackException catch (e) {
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context)
+                                ..clearSnackBars()
+                                ..showSnackBar(
+                                    SnackBar(content: Text(e.message)));
+                            } catch (_) {
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context)
+                                ..clearSnackBars()
+                                ..showSnackBar(const SnackBar(
+                                  content: Text('Failed to play audio.'),
+                                ));
+                            }
+                          }
+                        : null,
                   );
                 },
               ),

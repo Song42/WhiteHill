@@ -37,7 +37,18 @@ class _PlayerSectionState extends ConsumerState<PlayerSection>
       // already loaded (even paused), leave it alone — the user must press play
       // to explicitly switch. This prevents wiping a paused song's position.
       if (playerState.hasCurrentSong) return;
-      ref.read(globalPlayerProvider.notifier).playSong(widget.song);
+      ref
+          .read(globalPlayerProvider.notifier)
+          .playSong(widget.song)
+          .catchError((e) {
+        if (!mounted) return;
+        final message = e is AudioPlaybackException
+            ? e.message
+            : 'Failed to load audio.';
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(SnackBar(content: Text(message)));
+      });
     });
     _loopController = AnimationController(
       vsync: this,
@@ -209,7 +220,7 @@ class _PlayerSectionState extends ConsumerState<PlayerSection>
                                     notifier.togglePlay();
                                   } else {
                                     await notifier.playSong(widget.song);
-                                    notifier.togglePlay();
+                                    notifier.play();
                                   }
                                 } on AudioPlaybackException catch (e) {
                                   if (!context.mounted) return;
@@ -505,16 +516,30 @@ class _DownloadButton extends ConsumerWidget {
     final isOnline = ref.watch(isOnlineProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
+    final isSaved = dlState.status == DownloadStatus.downloaded;
+
     final (IconData icon, String label, bool enabled) = switch (dlState.status) {
       DownloadStatus.idle => (Icons.download_rounded, isOnline ? 'Save' : 'Save (Offline)', isOnline),
       DownloadStatus.downloading => (Icons.downloading_rounded, 'Saving...', false),
-      DownloadStatus.downloaded => (Icons.download_done_rounded, 'Saved', false),
+      DownloadStatus.downloaded => (Icons.delete_outline_rounded, 'Saved', true),
       DownloadStatus.error => (Icons.error_outline_rounded, 'Retry', isOnline),
     };
 
     return TextButton.icon(
       onPressed: enabled
           ? () async {
+              if (isSaved) {
+                await ref
+                    .read(audioDownloadProvider(song.storagePath!).notifier)
+                    .delete(song.storagePath!);
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context)
+                  ..clearSnackBars()
+                  ..showSnackBar(
+                    const SnackBar(content: Text('Offline audio removed')),
+                  );
+                return;
+              }
               await ref
                   .read(audioDownloadProvider(song.storagePath!).notifier)
                   .download(song.storagePath!);

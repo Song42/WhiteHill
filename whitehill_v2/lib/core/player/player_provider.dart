@@ -127,8 +127,15 @@ class GlobalPlayerNotifier extends StateNotifier<GlobalPlayerState> {
     // Try locally saved file first, then fall back to signed URL.
     final localFile = await localAudioFile(song.storagePath!);
     if (await localFile.exists()) {
-      await _handler.loadAndPlay(localFile.uri.toString(), mediaItem);
-      return;
+      try {
+        await _handler.loadAndPlay(localFile.uri.toString(), mediaItem);
+        return;
+      } catch (_) {
+        state = state.copyWith(isLoading: false);
+        throw const AudioPlaybackException(
+          'Saved audio file is corrupted. Try removing and re-downloading it.',
+        );
+      }
     }
 
     try {
@@ -138,19 +145,34 @@ class GlobalPlayerNotifier extends StateNotifier<GlobalPlayerState> {
       await _handler.loadAndPlay(signedUrl, mediaItem);
     } on SocketException {
       state = state.copyWith(isLoading: false);
-      throw AudioPlaybackException(
+      throw const AudioPlaybackException(
         'No internet connection. Save the song for offline playback.',
+      );
+    } on PlayerException {
+      state = state.copyWith(isLoading: false);
+      throw const AudioPlaybackException(
+        'Audio file not found. The song may have been moved or removed.',
       );
     } catch (e) {
       state = state.copyWith(isLoading: false);
-      if (e.toString().contains('SocketException') ||
-          e.toString().contains('ClientException') ||
-          e.toString().contains('Connection')) {
-        throw AudioPlaybackException(
+      final msg = e.toString();
+      if (msg.contains('SocketException') ||
+          msg.contains('ClientException') ||
+          msg.contains('Connection')) {
+        throw const AudioPlaybackException(
           'No internet connection. Save the song for offline playback.',
         );
       }
-      throw AudioPlaybackException('Failed to load audio: $e');
+      if (msg.contains('Object not found') ||
+          msg.contains('404') ||
+          msg.contains('not found')) {
+        throw const AudioPlaybackException(
+          'Audio file not found. The song may have been moved or removed.',
+        );
+      }
+      throw const AudioPlaybackException(
+        'Failed to play audio. Please try again later.',
+      );
     }
   }
 
@@ -161,6 +183,10 @@ class GlobalPlayerNotifier extends StateNotifier<GlobalPlayerState> {
       _handler.play();
     }
   }
+
+  /// Unconditionally starts playback — use after [playSong] to avoid the
+  /// race where [togglePlay] reads a stale [isPlaying] from the stream.
+  void play() => _handler.play();
 
   void seek(double value) {
     final ms = (value * state.duration.inMilliseconds).round();

@@ -78,6 +78,14 @@ class AudioDownloadNotifier
     }
   }
 
+  Future<void> delete(String storagePath) async {
+    final file = await _localFile(storagePath);
+    if (await file.exists()) {
+      await file.delete();
+    }
+    state = const AudioDownloadState();
+  }
+
   Future<File> _localFile(String storagePath) => localAudioFile(storagePath);
 }
 

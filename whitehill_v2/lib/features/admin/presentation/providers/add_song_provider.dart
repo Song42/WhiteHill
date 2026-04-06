@@ -197,6 +197,9 @@ class AddSongNotifier extends AutoDisposeNotifier<AddSongFormState> {
         if (state.selectedAlbumId != null) {
           // Existing album
           albumId = state.selectedAlbumId!;
+          final updateData = <String, dynamic>{
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
+          };
           if (state.thumbnailFilePath != null) {
             final ext =
                 state.thumbnailFileName!.split('.').last.toLowerCase();
@@ -207,13 +210,10 @@ class AddSongNotifier extends AutoDisposeNotifier<AddSongFormState> {
                   bytes,
                   fileOptions: FileOptions(upsert: true),
                 );
-            final coverUrl =
+            updateData['cover_url'] =
                 client.storage.from(_kMediaBucket).getPublicUrl(thumbPath);
-            await client
-                .from('albums')
-                .update({'cover_url': coverUrl})
-                .eq('id', albumId);
           }
+          await client.from('albums').update(updateData).eq('id', albumId);
         } else {
           // New album — generate ID client-side so we can pre-compute the
           // thumbnail path and include cover_url in the INSERT (no PATCH needed)
@@ -230,10 +230,12 @@ class AddSongNotifier extends AutoDisposeNotifier<AddSongFormState> {
             coverUrl =
                 client.storage.from(_kMediaBucket).getPublicUrl(thumbPath);
           }
+          final now = DateTime.now().toUtc().toIso8601String();
           final albumData = <String, dynamic>{
             'id': albumId,
             'title': state.albumTitle,
             'artist_id': artistId,
+            'updated_at': now,
           };
           if (coverUrl != null) albumData['cover_url'] = coverUrl;
           await client.from('albums').insert(albumData);

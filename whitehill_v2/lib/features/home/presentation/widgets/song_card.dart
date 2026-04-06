@@ -8,6 +8,8 @@ class SongCard extends StatelessWidget {
   final String? thumbnailUrl;
   final VoidCallback onTap;
   final VoidCallback onLyricsTap;
+  final VoidCallback? onPlayTap;
+  final bool isPlaying;
 
   const SongCard({
     super.key,
@@ -17,6 +19,8 @@ class SongCard extends StatelessWidget {
     this.thumbnailUrl,
     required this.onTap,
     required this.onLyricsTap,
+    this.onPlayTap,
+    this.isPlaying = false,
   });
 
   @override
@@ -32,7 +36,7 @@ class SongCard extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              _Thumbnail(url: thumbnailUrl),
+              _Thumbnail(url: thumbnailUrl, onPlayTap: onPlayTap, isPlaying: isPlaying),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -74,8 +78,10 @@ class SongCard extends StatelessWidget {
 
 class _Thumbnail extends StatelessWidget {
   final String? url;
+  final VoidCallback? onPlayTap;
+  final bool isPlaying;
 
-  const _Thumbnail({this.url});
+  const _Thumbnail({this.url, this.onPlayTap, this.isPlaying = false});
 
   @override
   Widget build(BuildContext context) {
@@ -86,15 +92,34 @@ class _Thumbnail extends StatelessWidget {
       child: SizedBox(
         width: 56,
         height: 56,
-        child: url != null
-            ? CachedNetworkImage(
-                imageUrl: url!,
-                fit: BoxFit.cover,
-                memCacheWidth: 168, // 56 logical * 3x device pixel ratio
-                placeholder: (_, _) => _placeholder(colorScheme),
-                errorWidget: (_, _, _) => _placeholder(colorScheme),
-              )
-            : _placeholder(colorScheme),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            url != null
+                ? CachedNetworkImage(
+                    imageUrl: url!,
+                    fit: BoxFit.cover,
+                    memCacheWidth: 168, // 56 logical * 3x device pixel ratio
+                    placeholder: (_, _) => _placeholder(colorScheme),
+                    errorWidget: (_, _, _) => _placeholder(colorScheme),
+                  )
+                : _placeholder(colorScheme),
+            if (onPlayTap != null)
+              Material(
+                color: Colors.black26,
+                child: InkWell(
+                  onTap: onPlayTap,
+                  child: Center(
+                    child: Icon(
+                      isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
