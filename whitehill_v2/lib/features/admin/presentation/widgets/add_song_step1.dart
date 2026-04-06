@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whitehill_v2/features/admin/presentation/providers/add_song_provider.dart';
@@ -34,34 +35,121 @@ class AddSongStep1 extends ConsumerStatefulWidget {
 class _AddSongStep1State extends ConsumerState<AddSongStep1> {
   final _artistFocusNode = FocusNode();
   final _albumFocusNode = FocusNode();
+  final _albumLayerLink = LayerLink();
+  OverlayEntry? _albumOverlay;
 
   @override
   void initState() {
     super.initState();
     _artistFocusNode.addListener(_onArtistFocus);
-    _albumFocusNode.addListener(_onAlbumFocus);
+    _albumFocusNode.addListener(_onAlbumFocusChanged);
+    widget.albumController.addListener(_onAlbumTextChanged);
   }
 
   void _onArtistFocus() {
     if (_artistFocusNode.hasFocus) _pingController(widget.artistController);
   }
 
-  void _onAlbumFocus() {
-    if (_albumFocusNode.hasFocus) _pingController(widget.albumController);
+  /// Sends a zero-delta value change so RawAutocomplete re-evaluates options.
+  void _pingController(TextEditingController ctrl) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final saved = ctrl.value;
+      ctrl.value = saved == TextEditingValue.empty
+          ? const TextEditingValue(text: ' ')
+          : TextEditingValue.empty;
+      ctrl.value = saved;
+    });
   }
 
-  /// Sends a zero-delta value change so RawAutocomplete re-evaluates options.
-  /// Both assignments happen synchronously — the field never visually clears.
-  void _pingController(TextEditingController ctrl) {
-    final saved = ctrl.value;
-    ctrl.value = TextEditingValue.empty;
-    ctrl.value = saved;
+  // ── Album overlay management ──
+
+  void _onAlbumFocusChanged() {
+    if (_albumFocusNode.hasFocus) {
+      _showAlbumOverlay();
+    } else {
+      _hideAlbumOverlay();
+    }
+  }
+
+  void _onAlbumTextChanged() {
+    // Rebuild the overlay to reflect filtered results.
+    _albumOverlay?.markNeedsBuild();
+  }
+
+  void _showAlbumOverlay() {
+    _hideAlbumOverlay();
+    _albumOverlay = OverlayEntry(builder: (_) => _buildAlbumOverlay());
+    Overlay.of(context).insert(_albumOverlay!);
+  }
+
+  void _hideAlbumOverlay() {
+    _albumOverlay?.remove();
+    _albumOverlay = null;
+  }
+
+  Widget _buildAlbumOverlay() {
+    final selectedArtistId = ref.read(addSongFormProvider).selectedArtistId;
+    final albums = selectedArtistId != null
+        ? ref.read(albumsByArtistProvider(selectedArtistId)).valueOrNull ?? []
+        : <AlbumOption>[];
+
+    final q = widget.albumController.text.toLowerCase();
+    final filtered = q.isEmpty
+        ? albums
+        : albums.where((a) => a.title.toLowerCase().contains(q)).toList();
+
+    if (filtered.isEmpty) return const SizedBox.shrink();
+
+    final notifier = ref.read(addSongFormProvider.notifier);
+
+    final targetContext = _albumFocusNode.context;
+    final renderBox = targetContext?.findRenderObject() as RenderBox?;
+    final width = renderBox?.size.width ?? 300;
+
+    return CompositedTransformFollower(
+      link: _albumLayerLink,
+      showWhenUnlinked: false,
+      targetAnchor: Alignment.bottomLeft,
+      child: Align(
+        alignment: Alignment.topLeft,
+        child: SizedBox(
+          width: width,
+          child: Material(
+            elevation: 4,
+            borderRadius: BorderRadius.circular(4),
+            child: ListView.builder(
+              shrinkWrap: true,
+              padding: EdgeInsets.zero,
+              itemCount: filtered.length,
+              itemBuilder: (context, index) {
+                final album = filtered[index];
+                return InkWell(
+                  onTap: () {
+                    widget.albumController.text = album.title;
+                    notifier.selectAlbum(album.id, album.coverUrl);
+                    _albumFocusNode.unfocus();
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    child: Text(album.title),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
   void dispose() {
+    _hideAlbumOverlay();
     _artistFocusNode.removeListener(_onArtistFocus);
-    _albumFocusNode.removeListener(_onAlbumFocus);
+    _albumFocusNode.removeListener(_onAlbumFocusChanged);
+    widget.albumController.removeListener(_onAlbumTextChanged);
     _artistFocusNode.dispose();
     _albumFocusNode.dispose();
     super.dispose();
@@ -70,10 +158,11 @@ class _AddSongStep1State extends ConsumerState<AddSongStep1> {
   @override
   Widget build(BuildContext context) {
     final notifier = ref.read(addSongFormProvider.notifier);
-    final selectedArtistId =
-        ref.watch(addSongFormProvider).selectedArtistId;
+    final formState = ref.watch(addSongFormProvider);
+    final selectedArtistId = formState.selectedArtistId;
 
     final artists = ref.watch(allArtistsProvider).valueOrNull ?? [];
+    // Keep watching so the provider stays alive (no re-fetch).
     final albums = selectedArtistId != null
         ? ref
                 .watch(albumsByArtistProvider(selectedArtistId))
@@ -103,6 +192,14 @@ class _AddSongStep1State extends ConsumerState<AddSongStep1> {
           _buildArtistField(context, artists, notifier),
           const SizedBox(height: 16),
           _buildAlbumField(context, albums, selectedArtistId, notifier),
+          if (formState.existingCoverUrl != null) ...[
+            const SizedBox(height: 12),
+            _buildAlbumCoverCard(
+              context,
+              formState.existingCoverUrl!,
+              widget.albumController.text,
+            ),
+          ],
           const SizedBox(height: 16),
           Row(
             children: [
@@ -131,6 +228,46 @@ class _AddSongStep1State extends ConsumerState<AddSongStep1> {
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAlbumCoverCard(
+    BuildContext context,
+    String coverUrl,
+    String albumTitle,
+  ) {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Row(
+        children: [
+          CachedNetworkImage(
+            imageUrl: coverUrl,
+            width: 64,
+            height: 64,
+            fit: BoxFit.cover,
+            placeholder: (_, _) => const SizedBox(
+              width: 64,
+              height: 64,
+              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            ),
+            errorWidget: (_, _, _) => const SizedBox(
+              width: 64,
+              height: 64,
+              child: Icon(Icons.album, size: 32),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              albumTitle,
+              style: Theme.of(context).textTheme.titleSmall,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 12),
         ],
       ),
     );
@@ -194,45 +331,26 @@ class _AddSongStep1State extends ConsumerState<AddSongStep1> {
     String? selectedArtistId,
     AddSongNotifier notifier,
   ) {
-    return RawAutocomplete<AlbumOption>(
-      textEditingController: widget.albumController,
-      focusNode: _albumFocusNode,
-      optionsBuilder: (value) {
-        final q = value.text.toLowerCase();
-        if (q.isEmpty) return albums;
-        return albums.where((a) => a.title.toLowerCase().contains(q));
-      },
-      displayStringForOption: (o) => o.title,
-      onSelected: (o) {
-        widget.albumController.text = o.title;
-        notifier.selectAlbum(o.id, o.coverUrl);
-      },
-      fieldViewBuilder: (context, ctrl, fn, onFieldSubmitted) {
-        return TextField(
-          controller: ctrl,
-          focusNode: fn,
-          onChanged: (_) {
-            if (ref.read(addSongFormProvider).selectedAlbumId != null) {
-              notifier.clearAlbum();
-            }
-          },
-          decoration: InputDecoration(
-            labelText: 'Album',
-            hintText: selectedArtistId != null && albums.isNotEmpty
-                ? 'Search or create new'
-                : 'Enter album title (optional)',
-            border: const OutlineInputBorder(),
-            suffixIcon:
-                albums.isNotEmpty ? const Icon(Icons.arrow_drop_down) : null,
-          ),
-          textCapitalization: TextCapitalization.words,
-        );
-      },
-      optionsViewBuilder: (context, onSelected, options) =>
-          _OptionsOverlay<AlbumOption>(
-        options: options,
-        labelFor: (o) => o.title,
-        onSelected: onSelected,
+    return CompositedTransformTarget(
+      link: _albumLayerLink,
+      child: TextField(
+        controller: widget.albumController,
+        focusNode: _albumFocusNode,
+        onChanged: (_) {
+          if (ref.read(addSongFormProvider).selectedAlbumId != null) {
+            notifier.clearAlbum();
+          }
+        },
+        decoration: InputDecoration(
+          labelText: 'Album',
+          hintText: selectedArtistId != null && albums.isNotEmpty
+              ? 'Search or create new'
+              : 'Enter album title (optional)',
+          border: const OutlineInputBorder(),
+          suffixIcon:
+              albums.isNotEmpty ? const Icon(Icons.arrow_drop_down) : null,
+        ),
+        textCapitalization: TextCapitalization.words,
       ),
     );
   }

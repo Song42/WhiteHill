@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whitehill_v2/features/admin/presentation/providers/add_song_provider.dart';
@@ -111,7 +113,19 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
   }
 
   Future<void> _submit() async {
-    await ref.read(addSongFormProvider.notifier).submit();
+    try {
+      await ref
+          .read(addSongFormProvider.notifier)
+          .submit()
+          .timeout(const Duration(seconds: 30));
+    } on TimeoutException {
+      if (!mounted) return;
+      ref.read(addSongFormProvider.notifier).cancelSubmit();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Upload timed out — please try again')),
+      );
+      return;
+    }
     if (!mounted) return;
     final error = ref.read(addSongFormProvider).submissionError;
     if (error != null) {
@@ -129,11 +143,14 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
     final currentStep = formState.currentStep;
     final isSubmitting = formState.isSubmitting;
 
-    return Scaffold(
+    return PopScope(
+      canPop: !isSubmitting,
+      child: Scaffold(
       appBar: AppBar(
         title: const Text('Add New Song'),
         centerTitle: true,
         surfaceTintColor: Colors.transparent,
+        automaticallyImplyLeading: !isSubmitting,
       ),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
@@ -172,13 +189,14 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
           ),
           _StepNavBar(
             currentStep: currentStep,
-            onBack: currentStep > 0 ? _back : null,
+            onBack: currentStep > 0 && !isSubmitting ? _back : null,
             onNext: currentStep == 3 ? _submit : _next,
             isLastStep: currentStep == 3,
             isSubmitting: isSubmitting,
           ),
         ],
         ),
+      ),
       ),
     );
   }

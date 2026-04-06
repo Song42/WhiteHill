@@ -1,6 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:whitehill_v2/features/admin/presentation/providers/add_song_provider.dart';
 class AddSongStep3 extends ConsumerWidget {
   const AddSongStep3({super.key});
@@ -10,8 +12,8 @@ class AddSongStep3 extends ConsumerWidget {
     final state = ref.watch(addSongFormProvider);
     final notifier = ref.read(addSongFormProvider.notifier);
 
-    // Already resolved when the user selected the album in step 1 — no extra request.
     final existingThumbnail = state.existingCoverFilename;
+    final existingCoverUrl = state.existingCoverUrl;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -49,23 +51,51 @@ class AddSongStep3 extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           _FilePickerTile(
-            label: 'Thumbnail Image',
+            label: 'Album Thumbnail',
             icon: Icons.image_outlined,
             fileName: state.thumbnailFileName,
-            hint: existingThumbnail != null
-                ? '$existingThumbnail already exists — tap to replace'
-                : null,
+            statusMessage: existingThumbnail != null && state.thumbnailFileName != null
+                ? 'The existing cover for this album will be updated'
+                : existingThumbnail != null
+                    ? 'The existing cover for this album will be applied automatically'
+                    : null,
+            isStatusPositive: existingThumbnail != null,
             onPick: () async {
               try {
                 final result = await FilePicker.platform.pickFiles(
                   type: FileType.image,
                 );
-                if (result != null && result.files.single.path != null) {
-                  notifier.pickThumbnail(
-                    path: result.files.single.path!,
-                    name: result.files.single.name,
-                  );
-                }
+                if (result == null || result.files.single.path == null) return;
+                if (!context.mounted) return;
+
+                final colorScheme = Theme.of(context).colorScheme;
+                final cropped = await ImageCropper().cropImage(
+                  sourcePath: result.files.single.path!,
+                  aspectRatio:
+                      const CropAspectRatio(ratioX: 1, ratioY: 1),
+                  compressQuality: 85,
+                  uiSettings: [
+                    AndroidUiSettings(
+                      toolbarTitle: 'Crop Album Cover',
+                      toolbarColor: colorScheme.surface,
+                      toolbarWidgetColor: colorScheme.onSurface,
+                      activeControlsWidgetColor: colorScheme.primary,
+                      lockAspectRatio: true,
+                      hideBottomControls: false,
+                    ),
+                    IOSUiSettings(
+                      title: 'Crop Album Cover',
+                      aspectRatioLockEnabled: true,
+                      resetAspectRatioEnabled: false,
+                    ),
+                  ],
+                );
+                if (cropped == null) return;
+
+                notifier.pickThumbnail(
+                  path: cropped.path,
+                  name: result.files.single.name,
+                );
               } catch (_) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -77,6 +107,29 @@ class AddSongStep3 extends ConsumerWidget {
               }
             },
           ),
+          const SizedBox(height: 24),
+          if (existingCoverUrl != null) ...[
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 500),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: CachedNetworkImage(
+                  imageUrl: existingCoverUrl,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  placeholder: (_, _) => const AspectRatio(
+                    aspectRatio: 1,
+                    child: Center(
+                        child: CircularProgressIndicator(strokeWidth: 2)),
+                  ),
+                  errorWidget: (_, _, _) => const AspectRatio(
+                    aspectRatio: 1,
+                    child: Center(child: Icon(Icons.broken_image, size: 48)),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -87,7 +140,8 @@ class _FilePickerTile extends StatelessWidget {
   final String label;
   final IconData icon;
   final String? fileName;
-  final String? hint;
+  final String? statusMessage;
+  final bool isStatusPositive;
   final VoidCallback onPick;
 
   const _FilePickerTile({
@@ -95,7 +149,8 @@ class _FilePickerTile extends StatelessWidget {
     required this.icon,
     required this.fileName,
     required this.onPick,
-    this.hint,
+    this.statusMessage,
+    this.isStatusPositive = false,
   });
 
   @override
@@ -134,15 +189,18 @@ class _FilePickerTile extends StatelessWidget {
                       style: Theme.of(context).textTheme.labelLarge),
                   const SizedBox(height: 2),
                   Text(
-                    isPicked ? fileName! : (hint ?? 'Tap to select'),
+                    isPicked
+                        ? fileName!
+                        : statusMessage ?? 'Not selected',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: isPicked
                               ? colorScheme.primary
-                              : hint != null
-                                  ? colorScheme.tertiary
-                                  : colorScheme.onSurfaceVariant,
+                              : statusMessage != null && isStatusPositive
+                                  ? Colors.green
+                                  : colorScheme.error,
                         ),
                     overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
                   ),
                 ],
               ),

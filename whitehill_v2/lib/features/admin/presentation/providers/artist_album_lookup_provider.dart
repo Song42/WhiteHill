@@ -37,13 +37,18 @@ final albumsByArtistProvider =
       .select('id, title, cover_url')
       .eq('artist_id', artistId)
       .order('title') as List;
-  return data
-      .map((r) => AlbumOption(
-            id: r['id'] as String,
-            title: r['title'] as String,
-            coverUrl: r['cover_url'] as String?,
-          ))
-      .toList();
+  final client = Supabase.instance.client;
+  return data.map((r) {
+    String? coverUrl = r['cover_url'] as String?;
+    if (coverUrl != null && !coverUrl.startsWith('http')) {
+      coverUrl = client.storage.from('media').getPublicUrl(coverUrl);
+    }
+    return AlbumOption(
+      id: r['id'] as String,
+      title: r['title'] as String,
+      coverUrl: coverUrl,
+    );
+  }).toList();
 });
 
 /// Returns true if a song with [title] already exists under the same

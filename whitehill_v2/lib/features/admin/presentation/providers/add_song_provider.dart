@@ -18,6 +18,7 @@ class AddSongFormState {
   final String? selectedArtistId;
   final String? selectedAlbumId;
   final String? existingCoverFilename;
+  final String? existingCoverUrl;
   // Step 2
   final String lyricsChord;
   // Step 3
@@ -39,6 +40,7 @@ class AddSongFormState {
     this.selectedArtistId,
     this.selectedAlbumId,
     this.existingCoverFilename,
+    this.existingCoverUrl,
     this.lyricsChord = '',
     this.audioFilePath,
     this.audioFileName,
@@ -61,6 +63,7 @@ class AddSongFormState {
     Object? selectedArtistId = _keep,
     Object? selectedAlbumId = _keep,
     Object? existingCoverFilename = _keep,
+    Object? existingCoverUrl = _keep,
     String? lyricsChord,
     String? audioFilePath,
     String? audioFileName,
@@ -85,6 +88,9 @@ class AddSongFormState {
       existingCoverFilename: identical(existingCoverFilename, _keep)
           ? this.existingCoverFilename
           : existingCoverFilename as String?,
+      existingCoverUrl: identical(existingCoverUrl, _keep)
+          ? this.existingCoverUrl
+          : existingCoverUrl as String?,
       lyricsChord: lyricsChord ?? this.lyricsChord,
       audioFilePath: audioFilePath ?? this.audioFilePath,
       audioFileName: audioFileName ?? this.audioFileName,
@@ -131,6 +137,7 @@ class AddSongNotifier extends AutoDisposeNotifier<AddSongFormState> {
         selectedArtistId: artistId,
         selectedAlbumId: null,
         existingCoverFilename: null,
+        existingCoverUrl: null,
       );
 
   /// Called when user clears or manually edits the artist field.
@@ -138,6 +145,7 @@ class AddSongNotifier extends AutoDisposeNotifier<AddSongFormState> {
         selectedArtistId: null,
         selectedAlbumId: null,
         existingCoverFilename: null,
+        existingCoverUrl: null,
       );
 
   /// Called when user selects an existing album from the autocomplete.
@@ -149,6 +157,7 @@ class AddSongNotifier extends AutoDisposeNotifier<AddSongFormState> {
     state = state.copyWith(
       selectedAlbumId: albumId,
       existingCoverFilename: filename,
+      existingCoverUrl: coverUrl,
     );
   }
 
@@ -156,6 +165,7 @@ class AddSongNotifier extends AutoDisposeNotifier<AddSongFormState> {
   void clearAlbum() => state = state.copyWith(
         selectedAlbumId: null,
         existingCoverFilename: null,
+        existingCoverUrl: null,
       );
 
   void pickAudio({required String path, required String name}) {
@@ -164,6 +174,10 @@ class AddSongNotifier extends AutoDisposeNotifier<AddSongFormState> {
 
   void pickThumbnail({required String path, required String name}) {
     state = state.copyWith(thumbnailFilePath: path, thumbnailFileName: name);
+  }
+
+  void cancelSubmit() {
+    state = state.copyWith(isSubmitting: false, submissionError: null);
   }
 
   void reset() => state = const AddSongFormState();

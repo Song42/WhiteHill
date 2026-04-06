@@ -70,8 +70,14 @@ class AddSongStep4 extends ConsumerWidget {
               ),
               _PreviewRow(
                 label: 'Thumbnail',
-                value: state.thumbnailFileName ?? 'Not selected',
-                isWarning: state.thumbnailFileName == null,
+                value: state.thumbnailFileName ??
+                    (state.existingCoverFilename != null
+                        ? 'The existing cover for this album will be applied automatically'
+                        : 'Not selected'),
+                isWarning: state.thumbnailFileName == null &&
+                    state.existingCoverFilename == null,
+                isPositive: state.thumbnailFileName == null &&
+                    state.existingCoverFilename != null,
               ),
             ],
           ),
@@ -127,11 +133,13 @@ class _PreviewRow extends StatelessWidget {
   final String label;
   final String value;
   final bool isWarning;
+  final bool isPositive;
 
   const _PreviewRow({
     required this.label,
     required this.value,
     this.isWarning = false,
+    this.isPositive = false,
   });
 
   @override
@@ -156,7 +164,11 @@ class _PreviewRow extends StatelessWidget {
             child: Text(
               value,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: isWarning ? colorScheme.error : null,
+                    color: isWarning
+                        ? colorScheme.error
+                        : isPositive
+                            ? Colors.green
+                            : null,
                   ),
             ),
           ),
