@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:whitehill_v2/core/providers/auth_provider.dart';
 import 'package:whitehill_v2/core/providers/connectivity_provider.dart';
 import 'package:whitehill_v2/features/admin/presentation/screens/add_song_screen.dart';
 import 'package:whitehill_v2/features/admin/presentation/screens/manage_songs_screen.dart';
@@ -81,6 +82,13 @@ class _AdminBoardScreenState extends ConsumerState<AdminBoardScreen> {
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
+                ),
+                const SizedBox(height: 32),
+                TextButton.icon(
+                  onPressed: () =>
+                      ref.read(authStateProvider.notifier).signOut(),
+                  icon: const Icon(Icons.logout),
+                  label: const Text('로그아웃'),
                 ),
               ],
             ),

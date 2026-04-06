@@ -7,6 +7,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/audio/whitehill_audio_handler.dart';
 import 'core/navigation/app_shell.dart';
 import 'core/player/player_provider.dart';
+import 'core/providers/auth_provider.dart';
+import 'features/auth/presentation/screens/login_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,7 +52,29 @@ class MainApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const AppShell(),
+      home: const _AuthGate(),
+    );
+  }
+}
+
+class _AuthGate extends ConsumerWidget {
+  const _AuthGate();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authStateProvider);
+
+    return authState.when(
+      loading: () => const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, _) => Scaffold(
+        body: Center(child: Text('Auth error: $e')),
+      ),
+      data: (session) {
+        if (session == null) return const LoginScreen();
+        return const AppShell();
+      },
     );
   }
 }
