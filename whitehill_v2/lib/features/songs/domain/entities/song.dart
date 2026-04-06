@@ -9,6 +9,8 @@ class Song {
   final String? storagePath;
   final int? bpm;
   final String? key;
+  final int totalSelections;
+  final DateTime? lastSelectedAt;
 
   const Song({
     required this.id,
@@ -21,5 +23,7 @@ class Song {
     this.storagePath,
     this.bpm,
     this.key,
+    this.totalSelections = 0,
+    this.lastSelectedAt,
   });
 }

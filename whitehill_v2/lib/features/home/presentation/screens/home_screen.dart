@@ -11,13 +11,13 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final songsAsync = ref.watch(songsProvider);
+    final songsAsync = ref.watch(selectedSongsProvider);
 
     return RefreshIndicator(
       onRefresh: () async {
-        ref.invalidate(songsProvider);
+        ref.invalidate(selectedSongsProvider);
         // ignore errors — the provider's error state handles them
-        await ref.read(songsProvider.future).then((_) {}, onError: (_) {});
+        await ref.read(selectedSongsProvider.future).then((_) {}, onError: (_) {});
       },
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -36,7 +36,7 @@ class HomeScreen extends ConsumerWidget {
           error: (e, _) => SliverFillRemaining(
             child: ErrorView(
               error: e,
-              onRetry: () => ref.invalidate(songsProvider),
+              onRetry: () => ref.invalidate(selectedSongsProvider),
             ),
           ),
           data: (songs) {
@@ -58,7 +58,7 @@ class HomeScreen extends ConsumerWidget {
                         const CircularProgressIndicator()
                       else
                         FilledButton.icon(
-                          onPressed: () => ref.invalidate(songsProvider),
+                          onPressed: () => ref.invalidate(selectedSongsProvider),
                           icon: const Icon(Icons.refresh_rounded),
                           label: const Text('Refresh'),
                         ),

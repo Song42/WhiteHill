@@ -12,6 +12,10 @@ final songsProvider = FutureProvider<List<Song>>((ref) {
   return ref.watch(songRepositoryProvider).getSongs();
 });
 
+final selectedSongsProvider = FutureProvider<List<Song>>((ref) {
+  return ref.watch(songRepositoryProvider).getSelectedSongs();
+});
+
 final songByIdProvider = FutureProvider.family<Song, String>((ref, id) {
   return ref.watch(songRepositoryProvider).getSongById(id);
 });

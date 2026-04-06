@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whitehill_v2/core/providers/connectivity_provider.dart';
 import 'package:whitehill_v2/features/admin/presentation/screens/add_song_screen.dart';
+import 'package:whitehill_v2/features/admin/presentation/screens/manage_songs_screen.dart';
 
 class AdminBoardScreen extends ConsumerStatefulWidget {
   const AdminBoardScreen({super.key});
@@ -67,7 +68,14 @@ class _AdminBoardScreenState extends ConsumerState<AdminBoardScreen> {
                 ),
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
-                  onPressed: null,
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ManageSongsScreen(),
+                      ),
+                    );
+                  },
                   icon: const Icon(Icons.library_music_outlined),
                   label: const Text('Manage Songs'),
                   style: OutlinedButton.styleFrom(

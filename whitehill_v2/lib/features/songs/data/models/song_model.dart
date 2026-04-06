@@ -12,6 +12,8 @@ class SongModel extends Song {
     super.storagePath,
     super.bpm,
     super.key,
+    super.totalSelections,
+    super.lastSelectedAt,
   });
 
   factory SongModel.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,10 @@ class SongModel extends Song {
       storagePath: json['audio_path'] as String?,
       bpm: json['bpm'] as int?,
       key: json['key'] as String?,
+      totalSelections: (json['total_selections'] as int?) ?? 0,
+      lastSelectedAt: json['last_selected_at'] != null
+          ? DateTime.parse(json['last_selected_at'] as String)
+          : null,
     );
   }
 
@@ -44,6 +50,8 @@ class SongModel extends Song {
         'audio_path': storagePath,
         'bpm': bpm,
         'key': key,
+        'total_selections': totalSelections,
+        'last_selected_at': lastSelectedAt?.toIso8601String(),
       };
 
   factory SongModel.fromCacheJson(Map<String, dynamic> json) => SongModel(
@@ -57,5 +65,9 @@ class SongModel extends Song {
         storagePath: json['audio_path'] as String?,
         bpm: json['bpm'] as int?,
         key: json['key'] as String?,
+        totalSelections: (json['total_selections'] as int?) ?? 0,
+        lastSelectedAt: json['last_selected_at'] != null
+            ? DateTime.parse(json['last_selected_at'] as String)
+            : null,
       );
 }

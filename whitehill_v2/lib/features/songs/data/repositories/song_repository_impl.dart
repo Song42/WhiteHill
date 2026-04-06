@@ -11,6 +11,7 @@ import '../models/song_model.dart';
 
 const _songSelect =
     'id, title, lyrics_chord, youtube_url, audio_path, bpm, key, '
+    'total_selections, last_selected_at, '
     'albums(title, cover_url, artists(name, image_url))';
 
 const _kImageBucket = 'media';
@@ -65,6 +66,55 @@ class SongRepositoryImpl implements SongRepository {
       throw SongNetworkException('Offline and no cached data available.');
     }
   }
+
+  @override
+  Future<List<Song>> getSelectedSongs() => _guard(() async {
+        final data = await _client
+            .from('selected_songs')
+            .select('song_id, songs($_songSelect)');
+        return (data as List).map((e) {
+          final songJson = e['songs'] as Map<String, dynamic>;
+          return SongModel.fromJson(_resolveJson(songJson));
+        }).toList();
+      });
+
+  @override
+  Future<void> saveSelections({
+    required Set<String> toAdd,
+    required Set<String> toRemove,
+    required Set<String> allSelected,
+  }) => _guard(() async {
+        // Remove deselected rows from selected_songs
+        if (toRemove.isNotEmpty) {
+          await _client
+              .from('selected_songs')
+              .delete()
+              .inFilter('song_id', toRemove.toList());
+        }
+        // Insert newly selected rows into selected_songs
+        if (toAdd.isNotEmpty) {
+          await _client.from('selected_songs').insert(
+              toAdd.map((id) => {'song_id': id}).toList());
+        }
+        // Increment total_selections & last_selected_at for ALL selected songs
+        for (final id in allSelected) {
+          await _client.rpc('increment_song_selection', params: {'song_id': id});
+        }
+      });
+
+  @override
+  Future<List<Song>> getSongSummaries() => _guard(() async {
+        const select =
+            'id, title, total_selections, last_selected_at, '
+            'albums(cover_url, artists(name))';
+        final data = await _client
+            .from('songs')
+            .select(select)
+            .order('title');
+        return (data as List)
+            .map((e) => SongModel.fromJson(_resolveJson(e)))
+            .toList();
+      });
 
   @override
   Future<Song> getSongById(String id) => _guard(() async {
