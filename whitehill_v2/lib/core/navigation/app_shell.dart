@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whitehill_v2/features/admin/presentation/screens/admin_board_screen.dart';
 import 'package:whitehill_v2/features/home/presentation/screens/home_screen.dart';
 import 'package:whitehill_v2/features/library/presentation/screens/library_screen.dart';
-import 'package:whitehill_v2/features/search/presentation/screens/search_screen.dart';
 
 import '../player/mini_player_bar.dart';
 import '../player/player_provider.dart';
@@ -15,7 +14,6 @@ class AppShell extends ConsumerWidget {
 
   static const _screens = [
     HomeScreen(),
-    SearchScreen(),
     LibraryScreen(),
     AdminBoardScreen(),
   ];
@@ -28,7 +26,10 @@ class AppShell extends ConsumerWidget {
     );
 
     return Scaffold(
-      body: _screens[currentIndex],
+      body: IndexedStack(
+        index: currentIndex,
+        children: _screens,
+      ),
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -42,11 +43,6 @@ class AppShell extends ConsumerWidget {
                 icon: Icon(Icons.home_outlined),
                 selectedIcon: Icon(Icons.home),
                 label: 'Home',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.search_outlined),
-                selectedIcon: Icon(Icons.search),
-                label: 'Search',
               ),
               NavigationDestination(
                 icon: Icon(Icons.library_music_outlined),

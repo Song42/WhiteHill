@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../domain/entities/song.dart';
 import '../../domain/entities/song_exception.dart';
 import '../../domain/repositories/song_repository.dart';
@@ -11,20 +14,57 @@ const _songSelect =
     'albums(title, cover_url, artists(name, image_url))';
 
 const _kImageBucket = 'media';
+const _kCacheFile = 'whitehill_cache/songs.json';
 
 class SongRepositoryImpl implements SongRepository {
   final SupabaseClient _client;
 
   const SongRepositoryImpl(this._client);
 
+  // ---------------------------------------------------------------------------
+  // Cache helpers
+  // ---------------------------------------------------------------------------
+
+  Future<File> get _cacheFile async {
+    final dir = await getApplicationDocumentsDirectory();
+    return File('${dir.path}/$_kCacheFile');
+  }
+
+  Future<void> _writeCache(List<SongModel> songs) async {
+    final file = await _cacheFile;
+    await file.parent.create(recursive: true);
+    final json = songs.map((s) => s.toJson()).toList();
+    await file.writeAsString(jsonEncode(json));
+  }
+
+  Future<List<Song>?> _readCache() async {
+    final file = await _cacheFile;
+    if (!await file.exists()) return null;
+    final raw = await file.readAsString();
+    final list = (jsonDecode(raw) as List).cast<Map<String, dynamic>>();
+    return list.map((e) => SongModel.fromCacheJson(e)).toList();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Public API
+  // ---------------------------------------------------------------------------
+
   @override
-  Future<List<Song>> getSongs() => _guard(() async {
-        final data = await _client
-            .from('songs')
-            .select(_songSelect)
-            .order('title');
-        return (data as List).map((e) => SongModel.fromJson(_resolveJson(e))).toList();
-      });
+  Future<List<Song>> getSongs() async {
+    try {
+      final songs = await _fetchSongsFromRemote();
+      // Update cache in the background — don't block the return.
+      _writeCache(songs);
+      return songs;
+    } catch (e) {
+      // If network fails, try to serve from cache.
+      final cached = await _readCache();
+      if (cached != null) return cached;
+      // No cache either — rethrow the original error wrapped properly.
+      if (e is SongException) rethrow;
+      throw SongNetworkException('Offline and no cached data available.');
+    }
+  }
 
   @override
   Future<Song> getSongById(String id) => _guard(() async {
@@ -38,8 +78,22 @@ class SongRepositoryImpl implements SongRepository {
         return SongModel.fromJson(_resolveJson(data));
       });
 
+  // ---------------------------------------------------------------------------
+  // Internals
+  // ---------------------------------------------------------------------------
+
+  Future<List<SongModel>> _fetchSongsFromRemote() => _guard(() async {
+        final data = await _client
+            .from('songs')
+            .select(_songSelect)
+            .order('title');
+        return (data as List)
+            .map((e) => SongModel.fromJson(_resolveJson(e)))
+            .toList();
+      });
+
   /// Converts a storage path in `cover_url` to a public URL so that
-  /// [Image.network] can load the thumbnail directly.
+  /// [CachedNetworkImage] can load the thumbnail directly.
   Map<String, dynamic> _resolveJson(Map<String, dynamic> json) {
     final album = json['albums'] as Map<String, dynamic>?;
     if (album == null) return json;
@@ -60,8 +114,6 @@ class SongRepositoryImpl implements SongRepository {
     } on SongException {
       rethrow;
     } on PostgrestException catch (e) {
-      // code 42P01 = undefined_table; PGRST116 = no rows (should not reach
-      // here after maybeSingle, but kept for safety).
       throw SongDatabaseException('Database error: ${e.message}');
     } on SocketException {
       throw const SongNetworkException(

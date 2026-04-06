@@ -31,4 +31,31 @@ class SongModel extends Song {
       key: json['key'] as String?,
     );
   }
+
+  /// Flat JSON for local cache (no nested albums/artists structure).
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'artist_name': artistName,
+        'album_title': albumTitle,
+        'cover_url': coverUrl,
+        'lyrics_chord': lyricsChord,
+        'youtube_url': youtubeUrl,
+        'audio_path': storagePath,
+        'bpm': bpm,
+        'key': key,
+      };
+
+  factory SongModel.fromCacheJson(Map<String, dynamic> json) => SongModel(
+        id: json['id'] as String,
+        title: json['title'] as String,
+        artistName: json['artist_name'] as String?,
+        albumTitle: json['album_title'] as String?,
+        coverUrl: json['cover_url'] as String?,
+        lyricsChord: json['lyrics_chord'] as String?,
+        youtubeUrl: json['youtube_url'] as String?,
+        storagePath: json['audio_path'] as String?,
+        bpm: json['bpm'] as int?,
+        key: json['key'] as String?,
+      );
 }

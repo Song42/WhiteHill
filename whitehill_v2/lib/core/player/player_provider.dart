@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,8 +8,18 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../audio/whitehill_audio_handler.dart';
 import '../../features/songs/domain/entities/song.dart';
+import 'audio_download_provider.dart';
 
 const _kAudioBucket = 'media';
+
+/// Thrown when audio playback fails with a user-friendly message.
+class AudioPlaybackException implements Exception {
+  final String message;
+  const AudioPlaybackException(this.message);
+
+  @override
+  String toString() => message;
+}
 
 /// Provided via ProviderScope override in main.dart after AudioService.init().
 final audioHandlerProvider = Provider<WhitehillAudioHandler>(
@@ -106,19 +117,41 @@ class GlobalPlayerNotifier extends StateNotifier<GlobalPlayerState> {
       duration: Duration.zero,
     );
 
-    final signedUrl = await Supabase.instance.client.storage
-        .from(_kAudioBucket)
-        .createSignedUrl(song.storagePath!, 3600);
-
-    await _handler.loadAndPlay(
-      signedUrl,
-      MediaItem(
-        id: song.id,
-        title: song.title,
-        artist: song.artistName,
-        artUri: song.coverUrl != null ? Uri.parse(song.coverUrl!) : null,
-      ),
+    final mediaItem = MediaItem(
+      id: song.id,
+      title: song.title,
+      artist: song.artistName,
+      artUri: song.coverUrl != null ? Uri.parse(song.coverUrl!) : null,
     );
+
+    // Try locally saved file first, then fall back to signed URL.
+    final localFile = await localAudioFile(song.storagePath!);
+    if (await localFile.exists()) {
+      await _handler.loadAndPlay(localFile.uri.toString(), mediaItem);
+      return;
+    }
+
+    try {
+      final signedUrl = await Supabase.instance.client.storage
+          .from(_kAudioBucket)
+          .createSignedUrl(song.storagePath!, 3600);
+      await _handler.loadAndPlay(signedUrl, mediaItem);
+    } on SocketException {
+      state = state.copyWith(isLoading: false);
+      throw AudioPlaybackException(
+        'No internet connection. Save the song for offline playback.',
+      );
+    } catch (e) {
+      state = state.copyWith(isLoading: false);
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('ClientException') ||
+          e.toString().contains('Connection')) {
+        throw AudioPlaybackException(
+          'No internet connection. Save the song for offline playback.',
+        );
+      }
+      throw AudioPlaybackException('Failed to load audio: $e');
+    }
   }
 
   void togglePlay() {

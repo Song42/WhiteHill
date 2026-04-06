@@ -1,7 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/player/audio_download_provider.dart';
 import '../../../../core/player/player_provider.dart';
+import '../../../../core/providers/connectivity_provider.dart';
 import '../../../songs/domain/entities/song.dart';
 
 class PlayerSection extends ConsumerStatefulWidget {
@@ -70,9 +73,19 @@ class _PlayerSectionState extends ConsumerState<PlayerSection>
     final isCurrent = player.currentSong?.id == widget.song.id;
     final isThisLoading = isCurrent && player.isLoading;
     final isThisPlaying = isCurrent && player.isPlaying;
-    final displayPosition = isCurrent ? player.position : Duration.zero;
-    final displayDuration = isCurrent ? player.duration : Duration.zero;
+    final isOnline = ref.watch(isOnlineProvider);
     final hasNoAudio = widget.song.storagePath == null;
+    final isSavedLocally = !hasNoAudio &&
+        ref.watch(audioDownloadProvider(widget.song.storagePath!)).status ==
+            DownloadStatus.downloaded;
+    final canPlay = !hasNoAudio && (isOnline || isSavedLocally);
+    final displayPosition = isCurrent ? player.position : Duration.zero;
+    // Show pre-fetched local duration when song isn't loaded in the player yet.
+    final localDuration = (!hasNoAudio && isSavedLocally && !isCurrent)
+        ? ref.watch(localAudioDurationProvider(widget.song.storagePath!)).valueOrNull
+        : null;
+    final displayDuration =
+        isCurrent ? player.duration : (localDuration ?? Duration.zero);
     final progress = isCurrent && player.duration.inMilliseconds > 0
         ? player.position.inMilliseconds / player.duration.inMilliseconds
         : 0.0;
@@ -105,10 +118,18 @@ class _PlayerSectionState extends ConsumerState<PlayerSection>
                     child: widget.song.coverUrl != null
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(20),
-                            child: Image.network(
-                              widget.song.coverUrl!,
+                            child: CachedNetworkImage(
+                              imageUrl: widget.song.coverUrl!,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) => Icon(
+                              memCacheWidth: 840, // 280 logical * 3x
+                              fadeInDuration: Duration.zero,
+                              fadeOutDuration: Duration.zero,
+                              placeholder: (_, _) => Icon(
+                                Icons.music_note_rounded,
+                                size: 88,
+                                color: colorScheme.onPrimaryContainer,
+                              ),
+                              errorWidget: (_, _, _) => Icon(
                                 Icons.music_note_rounded,
                                 size: 88,
                                 color: colorScheme.onPrimaryContainer,
@@ -180,15 +201,34 @@ class _PlayerSectionState extends ConsumerState<PlayerSection>
                           shape: const CircleBorder(),
                           padding: const EdgeInsets.all(16),
                         ),
-                        onPressed: (isThisLoading || hasNoAudio)
+                        onPressed: (isThisLoading || !canPlay)
                             ? null
                             : () async {
-                                if (isCurrent) {
-                                  notifier.togglePlay();
-                                } else {
-                                  // Load the new song then start playing.
-                                  await notifier.playSong(widget.song);
-                                  notifier.togglePlay();
+                                try {
+                                  if (isCurrent) {
+                                    notifier.togglePlay();
+                                  } else {
+                                    await notifier.playSong(widget.song);
+                                    notifier.togglePlay();
+                                  }
+                                } on AudioPlaybackException catch (e) {
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context)
+                                    ..clearSnackBars()
+                                    ..showSnackBar(
+                                      SnackBar(content: Text(e.message)),
+                                    );
+                                } catch (_) {
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context)
+                                    ..clearSnackBars()
+                                    ..showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Failed to play audio. Check your connection or save the song for offline playback.',
+                                        ),
+                                      ),
+                                    );
                                 }
                               },
                         child: isThisLoading
@@ -197,8 +237,13 @@ class _PlayerSectionState extends ConsumerState<PlayerSection>
                                 height: 32,
                                 child: CircularProgressIndicator(strokeWidth: 2),
                               )
-                            : hasNoAudio
-                                ? const Icon(Icons.music_off_rounded, size: 32)
+                            : !canPlay
+                                ? Icon(
+                                    !isOnline
+                                        ? Icons.cloud_off_rounded
+                                        : Icons.music_off_rounded,
+                                    size: 32,
+                                  )
                                 : Icon(
                                     isThisPlaying
                                         ? Icons.pause_rounded
@@ -214,6 +259,9 @@ class _PlayerSectionState extends ConsumerState<PlayerSection>
                       ),
                     ],
                   ),
+                  const SizedBox(height: 16),
+                  // Download button
+                  if (!hasNoAudio) _DownloadButton(song: widget.song),
                 ],
               ),
             ),
@@ -442,6 +490,58 @@ class _AutoScrollTextState extends State<_AutoScrollText> {
           child: child,
         );
       },
+    );
+  }
+}
+
+class _DownloadButton extends ConsumerWidget {
+  final Song song;
+
+  const _DownloadButton({required this.song});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final dlState = ref.watch(audioDownloadProvider(song.storagePath!));
+    final isOnline = ref.watch(isOnlineProvider);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final (IconData icon, String label, bool enabled) = switch (dlState.status) {
+      DownloadStatus.idle => (Icons.download_rounded, isOnline ? 'Save' : 'Save (Offline)', isOnline),
+      DownloadStatus.downloading => (Icons.downloading_rounded, 'Saving...', false),
+      DownloadStatus.downloaded => (Icons.download_done_rounded, 'Saved', false),
+      DownloadStatus.error => (Icons.error_outline_rounded, 'Retry', isOnline),
+    };
+
+    return TextButton.icon(
+      onPressed: enabled
+          ? () async {
+              await ref
+                  .read(audioDownloadProvider(song.storagePath!).notifier)
+                  .download(song.storagePath!);
+              if (!context.mounted) return;
+              final newState = ref.read(audioDownloadProvider(song.storagePath!));
+              if (newState.status == DownloadStatus.downloaded) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Audio saved for offline playback')),
+                );
+              } else if (newState.status == DownloadStatus.error) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Download failed: ${newState.error}')),
+                );
+              }
+            }
+          : null,
+      icon: dlState.status == DownloadStatus.downloading
+          ? SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
+            )
+          : Icon(icon, size: 20),
+      label: Text(label),
     );
   }
 }
