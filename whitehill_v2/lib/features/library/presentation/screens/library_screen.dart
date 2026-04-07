@@ -85,15 +85,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     final isSearching = query.isNotEmpty;
     final theme = Theme.of(context);
 
-    return RefreshIndicator(
-      onRefresh: () async {
-        _refresh();
-        await Future.wait([
-          ref.read(recentAlbumsProvider.future).then((_) {}, onError: (_) {}),
-          ref.read(recentSongsProvider.future).then((_) {}, onError: (_) {}),
-        ]);
-      },
-      child: CustomScrollView(
+    return CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           SliverAppBar(
@@ -134,7 +126,6 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           else
             ..._buildBrowseView(theme),
         ],
-      ),
     );
   }
 
