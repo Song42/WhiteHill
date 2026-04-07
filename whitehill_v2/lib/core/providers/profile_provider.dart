@@ -3,7 +3,43 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'auth_provider.dart';
 
-enum AppRole { admin, editor, worship, user }
+enum AppRole {
+  admin,
+  worshipLeader,
+  worshipTeam,
+  member;
+
+  String get displayLabel {
+    switch (this) {
+      case AppRole.worshipLeader:
+        return 'WORSHIP LEADER';
+      case AppRole.worshipTeam:
+        return 'WORSHIP TEAM';
+			case AppRole.member:
+				return 'MEMBER';
+      default:
+        return name.toUpperCase();
+    }
+  }
+
+  String get dbValue {
+    switch (this) {
+      case AppRole.worshipLeader:
+        return 'worship_leader';
+      case AppRole.worshipTeam:
+        return 'worship_team';
+      default:
+        return name;
+    }
+  }
+}
+
+const _dbRoleMap = {
+  'admin': AppRole.admin,
+  'worship_leader': AppRole.worshipLeader,
+  'worship_team': AppRole.worshipTeam,
+  'member': AppRole.member,
+};
 
 class UserProfile {
   final String id;
@@ -21,16 +57,13 @@ class UserProfile {
   });
 
   factory UserProfile.fromMap(Map<String, dynamic> map) {
-    final roleStr = map['role'] as String? ?? 'user';
+    final roleStr = map['role'] as String? ?? 'member';
     return UserProfile(
       id: map['id'] as String,
       email: map['email'] as String? ?? '',
       nickname: map['nickname'] as String? ?? '',
       avatarUrl: map['avatar_url'] as String?,
-      role: AppRole.values.firstWhere(
-        (r) => r.name == roleStr.toLowerCase(),
-        orElse: () => AppRole.user,
-      ),
+      role: _dbRoleMap[roleStr.toLowerCase()] ?? AppRole.member,
     );
   }
 }

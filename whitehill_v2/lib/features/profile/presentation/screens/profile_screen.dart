@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/providers/auth_provider.dart';
+import '../../../../core/providers/connectivity_provider.dart';
 import '../../../../core/providers/profile_provider.dart';
+import '../../../admin/presentation/screens/add_song_screen.dart';
+import '../../../admin/presentation/screens/manage_members_screen.dart';
+import '../../../admin/presentation/screens/manage_songs_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -20,7 +24,7 @@ class ProfileScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(32),
             child: profileAsync.when(
               loading: () => const CircularProgressIndicator(),
-              error: (e, _) => Text('프로필을 불러올 수 없습니다: $e'),
+              error: (e, _) => Text('Cannot load Profile: $e'),
               data: (profile) => Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -48,7 +52,13 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Chip(label: Text(profile.role.name.toUpperCase())),
+                  Chip(label: Text(profile.role.displayLabel)),
+                  if (profile.role == AppRole.admin ||
+                      profile.role == AppRole.worshipLeader ||
+                      profile.role == AppRole.worshipTeam) ...[
+                    const SizedBox(height: 32),
+                    _AdminActions(),
+                  ],
                   const SizedBox(height: 48),
                   SizedBox(
                     width: double.infinity,
@@ -56,7 +66,7 @@ class ProfileScreen extends ConsumerWidget {
                       onPressed: () =>
                           ref.read(authStateProvider.notifier).signOut(),
                       icon: const Icon(Icons.logout),
-                      label: const Text('로그아웃'),
+                      label: const Text('LOG OUT'),
                     ),
                   ),
                 ],
@@ -65,6 +75,99 @@ class ProfileScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _AdminActions extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isOnline = ref.watch(isOnlineProvider);
+    final isAdmin = ref.watch(isAdminProvider);
+    final isWorshipLeader =
+        ref.watch(profileRoleProvider).valueOrNull == AppRole.worshipLeader;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        FilledButton.icon(
+          onPressed: () {
+            if (!isOnline) {
+              ScaffoldMessenger.of(context)
+                ..clearSnackBars()
+                ..showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'No internet connection. Adding songs requires network access.',
+                    ),
+                  ),
+                );
+              return;
+            }
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AddSongScreen()),
+            );
+          },
+          icon: Icon(isOnline ? Icons.add : Icons.cloud_off_rounded),
+          label: const Text('Add New Song'),
+          style: FilledButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+          ),
+        ),
+        const SizedBox(height: 12),
+        OutlinedButton.icon(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ManageSongsScreen()),
+            );
+          },
+          icon: const Icon(Icons.library_music_outlined),
+          label: const Text('Manage Songs'),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+          ),
+        ),
+        if (isAdmin) ...[
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ManageMembersScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.group_outlined),
+            label: const Text('Manage Members'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+          ),
+        ],
+        if (isWorshipLeader) ...[
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ManageMembersScreen(
+                    title: 'Manage Team',
+                  ),
+                ),
+              );
+            },
+            icon: const Icon(Icons.group_outlined),
+            label: const Text('Manage Team'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
