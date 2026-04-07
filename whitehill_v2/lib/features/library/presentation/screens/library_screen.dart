@@ -99,9 +99,11 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           SliverAppBar(
             pinned: true,
             scrolledUnderElevation: 0,
-            title: const Text(
+            title: Text(
               'Library',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(64),
@@ -307,7 +309,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           if (albums.isEmpty) return const SliverToBoxAdapter();
           return SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.only(top: 16),
+              padding: const EdgeInsets.only(top: 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -315,13 +317,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
                       'Recently Updated Albums',
-                      style: theme.textTheme.titleMedium
+                      style: theme.textTheme.titleLarge
                           ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   SizedBox(
-                    height: 220,
+                    height: 200,
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -366,10 +368,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             slivers: [
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                   child: Text(
                     'Recently Added',
-                    style: theme.textTheme.titleMedium
+                    style: theme.textTheme.titleLarge
                         ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),

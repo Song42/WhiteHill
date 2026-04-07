@@ -22,122 +22,142 @@ class HomeScreen extends ConsumerWidget {
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          const SliverAppBar(
+          SliverAppBar(
             pinned: true,
             title: Text(
               'WhiteHill',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
           ),
           songsAsync.when(
-          loading: () => const SliverFillRemaining(
-            child: Center(child: CircularProgressIndicator()),
-          ),
-          error: (e, _) => SliverFillRemaining(
-            child: ErrorView(
-              error: e,
-              onRetry: () => ref.invalidate(selectedSongsProvider),
+            loading: () => const SliverFillRemaining(
+              child: Center(child: CircularProgressIndicator()),
             ),
-          ),
-          data: (songs) {
-            if (songs.isEmpty) {
-              return SliverFillRemaining(
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.library_music_outlined,
-                        size: 56,
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text('No songs yet.'),
-                      const SizedBox(height: 16),
-                      if (songsAsync.isLoading)
-                        const CircularProgressIndicator()
-                      else
-                        FilledButton.icon(
-                          onPressed: () => ref.invalidate(selectedSongsProvider),
-                          icon: const Icon(Icons.refresh_rounded),
-                          label: const Text('Refresh'),
+            error: (e, _) => SliverFillRemaining(
+              child: ErrorView(
+                error: e,
+                onRetry: () => ref.invalidate(selectedSongsProvider),
+              ),
+            ),
+            data: (songs) {
+              if (songs.isEmpty) {
+                return SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.library_music_outlined,
+                          size: 56,
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
                         ),
-                    ],
+                        const SizedBox(height: 16),
+                        const Text('No songs yet.'),
+                        const SizedBox(height: 16),
+                        if (songsAsync.isLoading)
+                          const CircularProgressIndicator()
+                        else
+                          FilledButton.icon(
+                            onPressed: () => ref.invalidate(selectedSongsProvider),
+                            icon: const Icon(Icons.refresh_rounded),
+                            label: const Text('Refresh'),
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+              return SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: Text(
+                    'Praise for This Sunday',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               );
-            }
-            return SliverPadding(
-              padding: const EdgeInsets.only(top: 8, bottom: 16),
-              sliver: SliverList.builder(
-                itemCount: songs.length,
-                itemBuilder: (context, index) {
-                  final song = songs[index];
-                  void openDetail(int initialPage) => Navigator.push(
-                        context,
-                        PageRouteBuilder(
-                          pageBuilder: (_, _, _) => SongDetailScreen(
-                            song: song,
-                            initialPage: initialPage,
+            },
+          ),
+          songsAsync.when(
+            loading: () => const SliverToBoxAdapter(),
+            error: (_, _) => const SliverToBoxAdapter(),
+            data: (songs) {
+              if (songs.isEmpty) return const SliverToBoxAdapter();
+              return SliverPadding(
+                padding: const EdgeInsets.only(top: 8, bottom: 16),
+                sliver: SliverList.builder(
+                  itemCount: songs.length,
+                  itemBuilder: (context, index) {
+                    final song = songs[index];
+                    void openDetail(int initialPage) => Navigator.push(
+                          context,
+                          PageRouteBuilder(
+                            pageBuilder: (_, _, _) => SongDetailScreen(
+                              song: song,
+                              initialPage: initialPage,
+                            ),
+                            transitionsBuilder: (_, animation, _, child) {
+                              return SlideTransition(
+                                position: Tween<Offset>(
+                                  begin: const Offset(0, 1),
+                                  end: Offset.zero,
+                                ).animate(CurvedAnimation(
+                                  parent: animation,
+                                  curve: Curves.easeInOut,
+                                )),
+                                child: child,
+                              );
+                            },
+                            transitionDuration: const Duration(milliseconds: 400),
                           ),
-                          transitionsBuilder: (_, animation, _, child) {
-                            return SlideTransition(
-                              position: Tween<Offset>(
-                                begin: const Offset(0, 1),
-                                end: Offset.zero,
-                              ).animate(CurvedAnimation(
-                                parent: animation,
-                                curve: Curves.easeInOut,
-                              )),
-                              child: child,
-                            );
-                          },
-                          transitionDuration: const Duration(milliseconds: 400),
-                        ),
-                      );
-                  final player = ref.watch(globalPlayerProvider);
-                  final isCurrent = player.currentSong?.id == song.id;
-                  return SongCard(
-                    id: song.id,
-                    title: song.title,
-                    artist: song.artistName ?? '',
-                    thumbnailUrl: song.coverUrl,
-                    onTap: () => openDetail(0),
-                    onLyricsTap: () => openDetail(1),
-                    isPlaying: isCurrent && player.isPlaying,
-                    onPlayTap: song.storagePath != null
-                        ? () async {
-                            final notifier =
-                                ref.read(globalPlayerProvider.notifier);
-                            try {
-                              if (isCurrent) {
-                                notifier.togglePlay();
-                              } else {
-                                await notifier.playSong(song);
-                                notifier.play();
+                        );
+                    final player = ref.watch(globalPlayerProvider);
+                    final isCurrent = player.currentSong?.id == song.id;
+                    return SongCard(
+                      id: song.id,
+                      title: song.title,
+                      artist: song.artistName ?? '',
+                      thumbnailUrl: song.coverUrl,
+                      onTap: () => openDetail(0),
+                      onLyricsTap: () => openDetail(1),
+                      isPlaying: isCurrent && player.isPlaying,
+                      onPlayTap: song.storagePath != null
+                          ? () async {
+                              final notifier =
+                                  ref.read(globalPlayerProvider.notifier);
+                              try {
+                                if (isCurrent) {
+                                  notifier.togglePlay();
+                                } else {
+                                  await notifier.playSong(song);
+                                  notifier.play();
+                                }
+                              } on AudioPlaybackException catch (e) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context)
+                                  ..clearSnackBars()
+                                  ..showSnackBar(
+                                      SnackBar(content: Text(e.message)));
+                              } catch (_) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context)
+                                  ..clearSnackBars()
+                                  ..showSnackBar(const SnackBar(
+                                    content: Text('Failed to play audio.'),
+                                  ));
                               }
-                            } on AudioPlaybackException catch (e) {
-                              if (!context.mounted) return;
-                              ScaffoldMessenger.of(context)
-                                ..clearSnackBars()
-                                ..showSnackBar(
-                                    SnackBar(content: Text(e.message)));
-                            } catch (_) {
-                              if (!context.mounted) return;
-                              ScaffoldMessenger.of(context)
-                                ..clearSnackBars()
-                                ..showSnackBar(const SnackBar(
-                                  content: Text('Failed to play audio.'),
-                                ));
                             }
-                          }
-                        : null,
-                  );
-                },
-              ),
-            );
-          },
-        ),
+                          : null,
+                    );
+                  },
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
