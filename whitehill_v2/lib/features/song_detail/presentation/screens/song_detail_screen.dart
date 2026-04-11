@@ -8,11 +8,7 @@ class SongDetailScreen extends StatefulWidget {
   final Song song;
   final int initialPage;
 
-  const SongDetailScreen({
-    super.key,
-    required this.song,
-    this.initialPage = 0,
-  });
+  const SongDetailScreen({super.key, required this.song, this.initialPage = 0});
 
   @override
   State<SongDetailScreen> createState() => _SongDetailScreenState();
@@ -22,16 +18,16 @@ class _SongDetailScreenState extends State<SongDetailScreen> {
   late final _pageController = PageController(initialPage: widget.initialPage);
 
   void _goToLyrics() => _pageController.animateToPage(
-        1,
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
-      );
+    1,
+    duration: const Duration(milliseconds: 400),
+    curve: Curves.easeInOut,
+  );
 
   void _goToPlayer() => _pageController.animateToPage(
-        0,
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
-      );
+    0,
+    duration: const Duration(milliseconds: 400),
+    curve: Curves.easeInOut,
+  );
 
   @override
   void dispose() {
@@ -52,10 +48,7 @@ class _SongDetailScreenState extends State<SongDetailScreen> {
         controller: _pageController,
         scrollDirection: Axis.vertical,
         children: [
-          PlayerSection(
-            song: widget.song,
-            onScrollToLyrics: _goToLyrics,
-          ),
+          PlayerSection(song: widget.song, onScrollToLyrics: _goToLyrics),
           LyricsSection(
             lyricsChord: widget.song.lyricsChord,
             onScrollToPlayer: _goToPlayer,

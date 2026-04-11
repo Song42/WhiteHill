@@ -54,8 +54,18 @@ class ManageMembersScreen extends ConsumerWidget {
 
 String _formatDate(DateTime date) {
   const months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
   return '${months[date.month - 1]} ${date.day}, ${date.year}';
 }
@@ -85,10 +95,12 @@ class _MemberTile extends ConsumerWidget {
       onTap: () => _showProfileModal(context, ref, member),
       leading: CircleAvatar(
         radius: 22,
-        backgroundImage:
-            member.avatarUrl != null ? NetworkImage(member.avatarUrl!) : null,
-        child:
-            member.avatarUrl == null ? const Icon(Icons.person, size: 22) : null,
+        backgroundImage: member.avatarUrl != null
+            ? NetworkImage(member.avatarUrl!)
+            : null,
+        child: member.avatarUrl == null
+            ? const Icon(Icons.person, size: 22)
+            : null,
       ),
       title: Text(
         member.nickname,
@@ -249,10 +261,8 @@ class _ProfileModalContentState extends State<_ProfileModalContent> {
                     },
               items: widget.allowedRoles!
                   .map(
-                    (r) => DropdownMenuItem(
-                      value: r,
-                      child: Text(r.displayLabel),
-                    ),
+                    (r) =>
+                        DropdownMenuItem(value: r, child: Text(r.displayLabel)),
                   )
                   .toList(),
             )
@@ -316,12 +326,7 @@ class _InfoRow extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: theme.textTheme.bodyMedium,
-            ),
-          ),
+          Expanded(child: Text(value, style: theme.textTheme.bodyMedium)),
         ],
       ),
     );

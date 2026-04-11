@@ -33,9 +33,7 @@ Future<void> main() async {
 
   runApp(
     ProviderScope(
-      overrides: [
-        audioHandlerProvider.overrideWithValue(audioHandler),
-      ],
+      overrides: [audioHandlerProvider.overrideWithValue(audioHandler)],
       child: const MainApp(),
     ),
   );
@@ -65,12 +63,9 @@ class _AuthGate extends ConsumerWidget {
     final authState = ref.watch(authStateProvider);
 
     return authState.when(
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
-      error: (e, _) => Scaffold(
-        body: Center(child: Text('Auth error: $e')),
-      ),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (e, _) => Scaffold(body: Center(child: Text('Auth error: $e'))),
       data: (session) {
         if (session == null) return const LoginScreen();
         return const AppShell();

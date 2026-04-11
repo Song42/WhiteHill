@@ -17,7 +17,9 @@ class HomeScreen extends ConsumerWidget {
       onRefresh: () async {
         ref.invalidate(selectedSongsProvider);
         // ignore errors — the provider's error state handles them
-        await ref.read(selectedSongsProvider.future).then((_) {}, onError: (_) {});
+        await ref
+            .read(selectedSongsProvider.future)
+            .then((_) {}, onError: (_) {});
       },
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -26,9 +28,9 @@ class HomeScreen extends ConsumerWidget {
             pinned: true,
             title: Text(
               'WhiteHill',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
           ),
           songsAsync.when(
@@ -51,7 +53,9 @@ class HomeScreen extends ConsumerWidget {
                         Icon(
                           Icons.library_music_outlined,
                           size: 56,
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.3),
                         ),
                         const SizedBox(height: 16),
                         const Text('No songs yet.'),
@@ -60,7 +64,8 @@ class HomeScreen extends ConsumerWidget {
                           const CircularProgressIndicator()
                         else
                           FilledButton.icon(
-                            onPressed: () => ref.invalidate(selectedSongsProvider),
+                            onPressed: () =>
+                                ref.invalidate(selectedSongsProvider),
                             icon: const Icon(Icons.refresh_rounded),
                             label: const Text('Refresh'),
                           ),
@@ -94,27 +99,30 @@ class HomeScreen extends ConsumerWidget {
                   itemBuilder: (context, index) {
                     final song = songs[index];
                     void openDetail(int initialPage) => Navigator.push(
-                          context,
-                          PageRouteBuilder(
-                            pageBuilder: (_, _, _) => SongDetailScreen(
-                              song: song,
-                              initialPage: initialPage,
-                            ),
-                            transitionsBuilder: (_, animation, _, child) {
-                              return SlideTransition(
-                                position: Tween<Offset>(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder: (_, _, _) => SongDetailScreen(
+                          song: song,
+                          initialPage: initialPage,
+                        ),
+                        transitionsBuilder: (_, animation, _, child) {
+                          return SlideTransition(
+                            position:
+                                Tween<Offset>(
                                   begin: const Offset(0, 1),
                                   end: Offset.zero,
-                                ).animate(CurvedAnimation(
-                                  parent: animation,
-                                  curve: Curves.easeInOut,
-                                )),
-                                child: child,
-                              );
-                            },
-                            transitionDuration: const Duration(milliseconds: 400),
-                          ),
-                        );
+                                ).animate(
+                                  CurvedAnimation(
+                                    parent: animation,
+                                    curve: Curves.easeInOut,
+                                  ),
+                                ),
+                            child: child,
+                          );
+                        },
+                        transitionDuration: const Duration(milliseconds: 400),
+                      ),
+                    );
                     final player = ref.watch(globalPlayerProvider);
                     final isCurrent = player.currentSong?.id == song.id;
                     return SongCard(
@@ -127,8 +135,9 @@ class HomeScreen extends ConsumerWidget {
                       isPlaying: isCurrent && player.isPlaying,
                       onPlayTap: song.storagePath != null
                           ? () async {
-                              final notifier =
-                                  ref.read(globalPlayerProvider.notifier);
+                              final notifier = ref.read(
+                                globalPlayerProvider.notifier,
+                              );
                               try {
                                 if (isCurrent) {
                                   notifier.togglePlay();
@@ -141,14 +150,17 @@ class HomeScreen extends ConsumerWidget {
                                 ScaffoldMessenger.of(context)
                                   ..clearSnackBars()
                                   ..showSnackBar(
-                                      SnackBar(content: Text(e.message)));
+                                    SnackBar(content: Text(e.message)),
+                                  );
                               } catch (_) {
                                 if (!context.mounted) return;
                                 ScaffoldMessenger.of(context)
                                   ..clearSnackBars()
-                                  ..showSnackBar(const SnackBar(
-                                    content: Text('Failed to play audio.'),
-                                  ));
+                                  ..showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Failed to play audio.'),
+                                    ),
+                                  );
                               }
                             }
                           : null,

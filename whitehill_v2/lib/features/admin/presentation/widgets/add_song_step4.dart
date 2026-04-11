@@ -45,8 +45,9 @@ class AddSongStep4 extends ConsumerWidget {
                   ),
                   child: Text(
                     state.lyricsChord,
-                    style: textTheme.bodySmall
-                        ?.copyWith(fontFamily: 'monospace'),
+                    style: textTheme.bodySmall?.copyWith(
+                      fontFamily: 'monospace',
+                    ),
                     maxLines: 6,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -54,8 +55,9 @@ class AddSongStep4 extends ConsumerWidget {
               else
                 Text(
                   'No lyrics entered',
-                  style: textTheme.bodySmall
-                      ?.copyWith(color: colorScheme.onSurfaceVariant),
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
             ],
           ),
@@ -70,13 +72,16 @@ class AddSongStep4 extends ConsumerWidget {
               ),
               _PreviewRow(
                 label: 'Thumbnail',
-                value: state.thumbnailFileName ??
+                value:
+                    state.thumbnailFileName ??
                     (state.existingCoverFilename != null
                         ? 'The existing cover for this album will be applied automatically'
                         : 'Not selected'),
-                isWarning: state.thumbnailFileName == null &&
+                isWarning:
+                    state.thumbnailFileName == null &&
                     state.existingCoverFilename == null,
-                isPositive: state.thumbnailFileName == null &&
+                isPositive:
+                    state.thumbnailFileName == null &&
                     state.existingCoverFilename != null,
               ),
             ],
@@ -109,10 +114,9 @@ class _PreviewCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: Text(
               title,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelLarge
-                  ?.copyWith(color: colorScheme.primary),
+              style: Theme.of(
+                context,
+              ).textTheme.labelLarge?.copyWith(color: colorScheme.primary),
             ),
           ),
           Divider(height: 1, color: colorScheme.outlineVariant),
@@ -156,20 +160,20 @@ class _PreviewRow extends StatelessWidget {
             child: Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
           Expanded(
             child: Text(
               value,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: isWarning
-                        ? colorScheme.error
-                        : isPositive
-                            ? Colors.green
-                            : null,
-                  ),
+                color: isWarning
+                    ? colorScheme.error
+                    : isPositive
+                    ? Colors.green
+                    : null,
+              ),
             ),
           ),
         ],

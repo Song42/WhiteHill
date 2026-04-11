@@ -134,19 +134,19 @@ class AddSongNotifier extends AutoDisposeNotifier<AddSongFormState> {
 
   /// Called when user selects an existing artist from the autocomplete.
   void selectArtist(String artistId) => state = state.copyWith(
-        selectedArtistId: artistId,
-        selectedAlbumId: null,
-        existingCoverFilename: null,
-        existingCoverUrl: null,
-      );
+    selectedArtistId: artistId,
+    selectedAlbumId: null,
+    existingCoverFilename: null,
+    existingCoverUrl: null,
+  );
 
   /// Called when user clears or manually edits the artist field.
   void clearArtist() => state = state.copyWith(
-        selectedArtistId: null,
-        selectedAlbumId: null,
-        existingCoverFilename: null,
-        existingCoverUrl: null,
-      );
+    selectedArtistId: null,
+    selectedAlbumId: null,
+    existingCoverFilename: null,
+    existingCoverUrl: null,
+  );
 
   /// Called when user selects an existing album from the autocomplete.
   void selectAlbum(String albumId, String? coverUrl) {
@@ -163,10 +163,10 @@ class AddSongNotifier extends AutoDisposeNotifier<AddSongFormState> {
 
   /// Called when user clears or manually edits the album field.
   void clearAlbum() => state = state.copyWith(
-        selectedAlbumId: null,
-        existingCoverFilename: null,
-        existingCoverUrl: null,
-      );
+    selectedAlbumId: null,
+    existingCoverFilename: null,
+    existingCoverUrl: null,
+  );
 
   void pickAudio({required String path, required String name}) {
     state = state.copyWith(audioFilePath: path, audioFileName: name);
@@ -215,17 +215,19 @@ class AddSongNotifier extends AutoDisposeNotifier<AddSongFormState> {
             'updated_at': DateTime.now().toUtc().toIso8601String(),
           };
           if (state.thumbnailFilePath != null) {
-            final ext =
-                state.thumbnailFileName!.split('.').last.toLowerCase();
+            final ext = state.thumbnailFileName!.split('.').last.toLowerCase();
             final thumbPath = 'albums/$albumId/cover.$ext';
             final bytes = await File(state.thumbnailFilePath!).readAsBytes();
-            await client.storage.from(_kMediaBucket).uploadBinary(
+            await client.storage
+                .from(_kMediaBucket)
+                .uploadBinary(
                   thumbPath,
                   bytes,
                   fileOptions: FileOptions(upsert: true),
                 );
-            updateData['cover_url'] =
-                client.storage.from(_kMediaBucket).getPublicUrl(thumbPath);
+            updateData['cover_url'] = client.storage
+                .from(_kMediaBucket)
+                .getPublicUrl(thumbPath);
           }
           await client.from('albums').update(updateData).eq('id', albumId);
         } else {
@@ -234,15 +236,15 @@ class AddSongNotifier extends AutoDisposeNotifier<AddSongFormState> {
           albumId = _generateUuid();
           String? coverUrl;
           if (state.thumbnailFilePath != null) {
-            final ext =
-                state.thumbnailFileName!.split('.').last.toLowerCase();
+            final ext = state.thumbnailFileName!.split('.').last.toLowerCase();
             final thumbPath = 'albums/$albumId/cover.$ext';
             final bytes = await File(state.thumbnailFilePath!).readAsBytes();
             await client.storage
                 .from(_kMediaBucket)
                 .uploadBinary(thumbPath, bytes);
-            coverUrl =
-                client.storage.from(_kMediaBucket).getPublicUrl(thumbPath);
+            coverUrl = client.storage
+                .from(_kMediaBucket)
+                .getPublicUrl(thumbPath);
           }
           final now = DateTime.now().toUtc().toIso8601String();
           final albumData = <String, dynamic>{
@@ -311,5 +313,5 @@ String _generateUuid() {
 
 final addSongFormProvider =
     NotifierProvider.autoDispose<AddSongNotifier, AddSongFormState>(
-  AddSongNotifier.new,
-);
+      AddSongNotifier.new,
+    );

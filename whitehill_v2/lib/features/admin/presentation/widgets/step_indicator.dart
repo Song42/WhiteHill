@@ -80,8 +80,7 @@ class StepIndicator extends StatelessWidget {
                 color: isCurrent
                     ? colorScheme.primary
                     : colorScheme.onSurfaceVariant,
-                fontWeight:
-                    isCurrent ? FontWeight.w600 : FontWeight.normal,
+                fontWeight: isCurrent ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
           ],

@@ -5,8 +5,9 @@ import 'package:whitehill_v2/features/songs/presentation/providers/songs_provide
 enum ManageSongsFilter { none, neverSelected, recentlySelected }
 
 /// Current filter selection.
-final manageSongsFilterProvider =
-    StateProvider.autoDispose<ManageSongsFilter>((_) => ManageSongsFilter.none);
+final manageSongsFilterProvider = StateProvider.autoDispose<ManageSongsFilter>(
+  (_) => ManageSongsFilter.none,
+);
 
 /// Local search query.
 final manageSongsSearchProvider = StateProvider.autoDispose<String>((_) => '');
@@ -24,44 +25,45 @@ final songSummariesProvider = FutureProvider<List<Song>>((ref) {
 /// - Both → search within filtered category.
 final filteredManageSongsProvider =
     Provider.autoDispose<AsyncValue<List<Song>>>((ref) {
-  final filter = ref.watch(manageSongsFilterProvider);
-  final query = ref.watch(manageSongsSearchProvider).toLowerCase();
+      final filter = ref.watch(manageSongsFilterProvider);
+      final query = ref.watch(manageSongsSearchProvider).toLowerCase();
 
-  if (filter == ManageSongsFilter.none && query.isEmpty) {
-    return const AsyncData([]);
-  }
+      if (filter == ManageSongsFilter.none && query.isEmpty) {
+        return const AsyncData([]);
+      }
 
-  final songsAsync = ref.watch(songSummariesProvider);
+      final songsAsync = ref.watch(songSummariesProvider);
 
-  return songsAsync.whenData((songs) {
-    var result = switch (filter) {
-      ManageSongsFilter.neverSelected =>
-        songs.where((s) => s.lastSelectedAt == null).toList(),
-      ManageSongsFilter.recentlySelected => songs
-          .where((s) => s.lastSelectedAt != null)
-          .toList()
-        ..sort((a, b) => b.lastSelectedAt!.compareTo(a.lastSelectedAt!)),
-      ManageSongsFilter.none => songs.toList(),
-    };
+      return songsAsync.whenData((songs) {
+        var result = switch (filter) {
+          ManageSongsFilter.neverSelected =>
+            songs.where((s) => s.lastSelectedAt == null).toList(),
+          ManageSongsFilter.recentlySelected =>
+            songs.where((s) => s.lastSelectedAt != null).toList()
+              ..sort((a, b) => b.lastSelectedAt!.compareTo(a.lastSelectedAt!)),
+          ManageSongsFilter.none => songs.toList(),
+        };
 
-    if (query.isNotEmpty) {
-      result = result
-          .where((s) =>
-              s.title.toLowerCase().contains(query) ||
-              (s.artistName?.toLowerCase().contains(query) ?? false))
-          .toList();
-    }
+        if (query.isNotEmpty) {
+          result = result
+              .where(
+                (s) =>
+                    s.title.toLowerCase().contains(query) ||
+                    (s.artistName?.toLowerCase().contains(query) ?? false),
+              )
+              .toList();
+        }
 
-    return result;
-  });
-});
+        return result;
+      });
+    });
 
 /// Tracks local selection state — initialised from DB, mutated locally,
 /// persisted on explicit save.
-final manageSongsSelectionProvider = AutoDisposeAsyncNotifierProvider<
-    ManageSongsSelectionNotifier, Set<String>>(
-  ManageSongsSelectionNotifier.new,
-);
+final manageSongsSelectionProvider =
+    AutoDisposeAsyncNotifierProvider<ManageSongsSelectionNotifier, Set<String>>(
+      ManageSongsSelectionNotifier.new,
+    );
 
 class ManageSongsSelectionNotifier
     extends AutoDisposeAsyncNotifier<Set<String>> {
@@ -87,8 +89,7 @@ class ManageSongsSelectionNotifier
   bool get hasChanges {
     final current = state.valueOrNull;
     if (current == null) return false;
-    return current.length != _initial.length ||
-        !current.containsAll(_initial);
+    return current.length != _initial.length || !current.containsAll(_initial);
   }
 
   Future<void> save() async {

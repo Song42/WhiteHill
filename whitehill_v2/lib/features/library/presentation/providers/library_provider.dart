@@ -14,30 +14,37 @@ const _songSelect =
     'albums(title, cover_url, artists(name, image_url))';
 
 /// Lightweight select for search results — no lyrics, bpm, key.
-const _searchSongSelect = 'id, title, audio_path, albums(cover_url, artists(name))';
+const _searchSongSelect =
+    'id, title, audio_path, albums(cover_url, artists(name))';
 
-final recentAlbumsProvider =
-    FutureProvider.autoDispose<List<Album>>((ref) async {
+final recentAlbumsProvider = FutureProvider.autoDispose<List<Album>>((
+  ref,
+) async {
   final client = Supabase.instance.client;
-  final data = await client
-      .from('albums')
-      .select(_albumSelect)
-      .order('updated_at', ascending: false)
-      .limit(5) as List;
+  final data =
+      await client
+              .from('albums')
+              .select(_albumSelect)
+              .order('updated_at', ascending: false)
+              .limit(5)
+          as List;
 
   return data.map((json) => _parseAlbum(json, client)).toList();
 });
 
-final recentSongsProvider =
-    FutureProvider.autoDispose<List<Song>>((ref) async {
+final recentSongsProvider = FutureProvider.autoDispose<List<Song>>((ref) async {
   final client = Supabase.instance.client;
-  final data = await client
-      .from('songs')
-      .select(_songSelect)
-      .order('created_at', ascending: false)
-      .limit(7) as List;
+  final data =
+      await client
+              .from('songs')
+              .select(_songSelect)
+              .order('created_at', ascending: false)
+              .limit(7)
+          as List;
 
-  return data.map((json) => SongModel.fromJson(_resolveCoverUrl(json, client))).toList();
+  return data
+      .map((json) => SongModel.fromJson(_resolveCoverUrl(json, client)))
+      .toList();
 });
 
 final librarySearchQueryProvider = StateProvider.autoDispose<String>((_) => '');
@@ -46,31 +53,35 @@ final librarySearchQueryProvider = StateProvider.autoDispose<String>((_) => '');
 // Server-side search (active query)
 // ---------------------------------------------------------------------------
 
-final searchAlbumsProvider =
-    FutureProvider.autoDispose<List<Album>>((ref) async {
+final searchAlbumsProvider = FutureProvider.autoDispose<List<Album>>((
+  ref,
+) async {
   final query = ref.watch(librarySearchQueryProvider).trim();
   if (query.isEmpty) return [];
   final client = Supabase.instance.client;
-  final data = await client
-      .from('albums')
-      .select(_albumSelect)
-      .ilike('title', '%$query%')
-      .order('title')
-      .limit(10) as List;
+  final data =
+      await client
+              .from('albums')
+              .select(_albumSelect)
+              .ilike('title', '%$query%')
+              .order('title')
+              .limit(10)
+          as List;
   return data.map((json) => _parseAlbum(json, client)).toList();
 });
 
-final searchSongsProvider =
-    FutureProvider.autoDispose<List<Song>>((ref) async {
+final searchSongsProvider = FutureProvider.autoDispose<List<Song>>((ref) async {
   final query = ref.watch(librarySearchQueryProvider).trim();
   if (query.isEmpty) return [];
   final client = Supabase.instance.client;
-  final data = await client
-      .from('songs')
-      .select(_searchSongSelect)
-      .ilike('title', '%$query%')
-      .order('title')
-      .limit(20) as List;
+  final data =
+      await client
+              .from('songs')
+              .select(_searchSongSelect)
+              .ilike('title', '%$query%')
+              .order('title')
+              .limit(20)
+          as List;
   return data
       .map((json) => SongModel.fromJson(_resolveCoverUrl(json, client)))
       .toList();
@@ -94,7 +105,9 @@ Album _parseAlbum(Map<String, dynamic> json, SupabaseClient client) {
 }
 
 Map<String, dynamic> _resolveCoverUrl(
-    Map<String, dynamic> json, SupabaseClient client) {
+  Map<String, dynamic> json,
+  SupabaseClient client,
+) {
   final album = json['albums'] as Map<String, dynamic>?;
   if (album == null) return json;
   final rawPath = album['cover_url'] as String?;

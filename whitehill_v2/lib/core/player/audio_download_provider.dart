@@ -33,8 +33,7 @@ class AudioDownloadState {
   }
 }
 
-class AudioDownloadNotifier
-    extends FamilyNotifier<AudioDownloadState, String> {
+class AudioDownloadNotifier extends FamilyNotifier<AudioDownloadState, String> {
   @override
   AudioDownloadState build(String arg) {
     // Check if already downloaded on init.
@@ -96,14 +95,16 @@ Future<File> localAudioFile(String storagePath) async {
   return File('${dir.path}/whitehill_audio/$storagePath');
 }
 
-final audioDownloadProvider = NotifierProvider.family<AudioDownloadNotifier,
-    AudioDownloadState, String>(
-  AudioDownloadNotifier.new,
-);
+final audioDownloadProvider =
+    NotifierProvider.family<AudioDownloadNotifier, AudioDownloadState, String>(
+      AudioDownloadNotifier.new,
+    );
 
 /// Probes the duration of a locally saved audio file without starting playback.
-final localAudioDurationProvider =
-    FutureProvider.family<Duration?, String>((ref, storagePath) async {
+final localAudioDurationProvider = FutureProvider.family<Duration?, String>((
+  ref,
+  storagePath,
+) async {
   final file = await localAudioFile(storagePath);
   if (!await file.exists()) return null;
   final player = AudioPlayer();

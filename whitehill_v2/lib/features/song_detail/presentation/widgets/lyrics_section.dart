@@ -26,7 +26,9 @@ List<_Segment> _parseChordPro(String line) {
   }
   segments.add(_Segment(currentChord, line.substring(lastEnd)));
 
-  return segments.where((s) => s.chord.isNotEmpty || s.text.isNotEmpty).toList();
+  return segments
+      .where((s) => s.chord.isNotEmpty || s.text.isNotEmpty)
+      .toList();
 }
 
 /// Splits segment texts at spaces so every word boundary coincides with a
@@ -149,10 +151,9 @@ class LyricsSection extends ConsumerWidget {
               ),
               Text(
                 'Lyrics',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const Spacer(),
               FilterChip(
@@ -179,8 +180,8 @@ class LyricsSection extends ConsumerWidget {
                   child: Text(
                     'No lyrics available',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurface.withValues(alpha: 0.4),
-                        ),
+                      color: colorScheme.onSurface.withValues(alpha: 0.4),
+                    ),
                   ),
                 )
               : SingleChildScrollView(
@@ -188,10 +189,15 @@ class LyricsSection extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: lyricsChord!.split('\n').map((line) {
-                      if (line.trim().isEmpty) return const SizedBox(height: 16);
+                      if (line.trim().isEmpty) {
+                        return const SizedBox(height: 16);
+                      }
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 6),
-                        child: _ChordLine(rawLine: line, showChords: showChords),
+                        child: _ChordLine(
+                          rawLine: line,
+                          showChords: showChords,
+                        ),
                       );
                     }).toList(),
                   ),
@@ -214,45 +220,45 @@ class _ChordLine extends StatelessWidget {
     final wordGroups = _groupByWord(_splitOnSpaces(_parseChordPro(rawLine)));
 
     final chordStyle = Theme.of(context).textTheme.labelSmall!.copyWith(
-          color: colorScheme.primary,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 0.5,
-        );
+      color: colorScheme.primary,
+      fontWeight: FontWeight.bold,
+      letterSpacing: 0.5,
+    );
     final lyricStyle = Theme.of(context).textTheme.bodyLarge!;
 
     Widget buildRow(List<List<_Segment>> groups, double maxWidth) => Wrap(
-          crossAxisAlignment: WrapCrossAlignment.start,
-          children: groups
-              .expand((g) => g)
-              .map((seg) => ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: maxWidth),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (showChords)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 4),
-                            child: Text(
-                              seg.chord.isNotEmpty ? seg.chord : ' ',
-                              style: chordStyle,
-                            ),
-                          ),
-                        Text(
-                          seg.text,
-                          style: lyricStyle,
-                          softWrap: true,
-                        ),
-                      ],
+      crossAxisAlignment: WrapCrossAlignment.start,
+      children: groups
+          .expand((g) => g)
+          .map(
+            (seg) => ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (showChords)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: Text(
+                        seg.chord.isNotEmpty ? seg.chord : ' ',
+                        style: chordStyle,
+                      ),
                     ),
-                  ))
-              .toList(),
-        );
+                  Text(seg.text, style: lyricStyle, softWrap: true),
+                ],
+              ),
+            ),
+          )
+          .toList(),
+    );
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final lines = _splitToFit(wordGroups, lyricStyle, constraints.maxWidth);
-        if (lines.length == 1) return buildRow(lines.first, constraints.maxWidth);
+        if (lines.length == 1) {
+          return buildRow(lines.first, constraints.maxWidth);
+        }
 
         final gap = showChords ? 18.0 : 6.0;
         return Column(

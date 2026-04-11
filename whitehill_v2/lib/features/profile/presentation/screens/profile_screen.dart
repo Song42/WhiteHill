@@ -135,9 +135,7 @@ class _AdminActions extends ConsumerWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const ManageMembersScreen(),
-                ),
+                MaterialPageRoute(builder: (_) => const ManageMembersScreen()),
               );
             },
             icon: const Icon(Icons.group_outlined),
@@ -154,9 +152,8 @@ class _AdminActions extends ConsumerWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const ManageMembersScreen(
-                    title: 'Manage Team',
-                  ),
+                  builder: (_) =>
+                      const ManageMembersScreen(title: 'Manage Team'),
                 ),
               );
             },

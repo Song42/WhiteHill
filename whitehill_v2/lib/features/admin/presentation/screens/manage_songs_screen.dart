@@ -69,11 +69,7 @@ class _ManageSongsScreenState extends ConsumerState<ManageSongsScreen> {
               : const Icon(Icons.music_note, size: 24),
         ),
       ),
-      title: Text(
-        song.title,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
+      title: Text(song.title, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -146,31 +142,27 @@ class _ManageSongsScreenState extends ConsumerState<ManageSongsScreen> {
                 FilterChip(
                   label: const Text('Never Selected'),
                   selected: filter == ManageSongsFilter.neverSelected,
-                  onSelected: (on) => ref
-                      .read(manageSongsFilterProvider.notifier)
-                      .state = on
-                          ? ManageSongsFilter.neverSelected
-                          : ManageSongsFilter.none,
+                  onSelected: (on) =>
+                      ref.read(manageSongsFilterProvider.notifier).state = on
+                      ? ManageSongsFilter.neverSelected
+                      : ManageSongsFilter.none,
                 ),
                 const SizedBox(width: 8),
                 FilterChip(
                   label: const Text('Recently Selected'),
                   selected: filter == ManageSongsFilter.recentlySelected,
-                  onSelected: (on) => ref
-                      .read(manageSongsFilterProvider.notifier)
-                      .state = on
-                          ? ManageSongsFilter.recentlySelected
-                          : ManageSongsFilter.none,
+                  onSelected: (on) =>
+                      ref.read(manageSongsFilterProvider.notifier).state = on
+                      ? ManageSongsFilter.recentlySelected
+                      : ManageSongsFilter.none,
                 ),
               ],
             ),
           ),
           Expanded(
             child: filteredAsync.when(
-              loading: () =>
-                  const Center(child: CircularProgressIndicator()),
-              error: (e, _) =>
-                  Center(child: Text('Failed to load songs: $e')),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Center(child: Text('Failed to load songs: $e')),
               data: (songs) {
                 if (songs.isEmpty) {
                   return Center(

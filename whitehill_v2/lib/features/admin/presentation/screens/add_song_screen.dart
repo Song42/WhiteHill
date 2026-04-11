@@ -89,8 +89,10 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
       );
       if (!mounted) return;
       if (exists) {
-        setState(() => _titleError =
-            'This title already exists for the selected artist / album');
+        setState(
+          () => _titleError =
+              'This title already exists for the selected artist / album',
+        );
         return;
       }
     }
@@ -129,9 +131,9 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
     if (!mounted) return;
     final error = ref.read(addSongFormProvider).submissionError;
     if (error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error)));
     } else {
       Navigator.pop(context);
     }
@@ -146,57 +148,58 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
     return PopScope(
       canPop: !isSubmitting,
       child: Scaffold(
-      appBar: AppBar(
-        title: const Text('Add New Song'),
-        centerTitle: true,
-        surfaceTintColor: Colors.transparent,
-        automaticallyImplyLeading: !isSubmitting,
-      ),
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        behavior: HitTestBehavior.translucent,
-        child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-            child: StepIndicator(
-              currentStep: currentStep,
-              totalSteps: 4,
-              labels: _stepLabels,
-            ),
-          ),
-          Expanded(
-            child: PageView(
-              controller: _pageController,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                AddSongStep1(
-                  titleController: _titleCtrl,
-                  artistController: _artistCtrl,
-                  albumController: _albumCtrl,
-                  bpmController: _bpmCtrl,
-                  keyController: _keyCtrl,
-                  titleError: _titleError,
-                  onTitleChanged: () => setState(() => _titleError = null),
-                  artistError: _artistError,
-                  onArtistChanged: () => setState(() => _artistError = null),
-                ),
-                AddSongStep2(lyricsController: _lyricsCtrl),
-                const AddSongStep3(),
-                const AddSongStep4(),
-              ],
-            ),
-          ),
-          _StepNavBar(
-            currentStep: currentStep,
-            onBack: currentStep > 0 && !isSubmitting ? _back : null,
-            onNext: currentStep == 3 ? _submit : _next,
-            isLastStep: currentStep == 3,
-            isSubmitting: isSubmitting,
-          ),
-        ],
+        appBar: AppBar(
+          title: const Text('Add New Song'),
+          centerTitle: true,
+          surfaceTintColor: Colors.transparent,
+          automaticallyImplyLeading: !isSubmitting,
         ),
-      ),
+        body: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          behavior: HitTestBehavior.translucent,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                child: StepIndicator(
+                  currentStep: currentStep,
+                  totalSteps: 4,
+                  labels: _stepLabels,
+                ),
+              ),
+              Expanded(
+                child: PageView(
+                  controller: _pageController,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    AddSongStep1(
+                      titleController: _titleCtrl,
+                      artistController: _artistCtrl,
+                      albumController: _albumCtrl,
+                      bpmController: _bpmCtrl,
+                      keyController: _keyCtrl,
+                      titleError: _titleError,
+                      onTitleChanged: () => setState(() => _titleError = null),
+                      artistError: _artistError,
+                      onArtistChanged: () =>
+                          setState(() => _artistError = null),
+                    ),
+                    AddSongStep2(lyricsController: _lyricsCtrl),
+                    const AddSongStep3(),
+                    const AddSongStep4(),
+                  ],
+                ),
+              ),
+              _StepNavBar(
+                currentStep: currentStep,
+                onBack: currentStep > 0 && !isSubmitting ? _back : null,
+                onNext: currentStep == 3 ? _submit : _next,
+                isLastStep: currentStep == 3,
+                isSubmitting: isSubmitting,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

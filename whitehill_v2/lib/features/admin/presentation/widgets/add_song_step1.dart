@@ -132,7 +132,9 @@ class _AddSongStep1State extends ConsumerState<AddSongStep1> {
                   },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     child: Text(album.title),
                   ),
                 );
@@ -164,10 +166,7 @@ class _AddSongStep1State extends ConsumerState<AddSongStep1> {
     final artists = ref.watch(allArtistsProvider).valueOrNull ?? [];
     // Keep watching so the provider stays alive (no re-fetch).
     final albums = selectedArtistId != null
-        ? ref
-                .watch(albumsByArtistProvider(selectedArtistId))
-                .valueOrNull ??
-            []
+        ? ref.watch(albumsByArtistProvider(selectedArtistId)).valueOrNull ?? []
         : <AlbumOption>[];
 
     return SingleChildScrollView(
@@ -306,22 +305,24 @@ class _AddSongStep1State extends ConsumerState<AddSongStep1> {
           },
           decoration: InputDecoration(
             labelText: 'Artist *',
-            hintText:
-                artists.isEmpty ? 'Enter artist name' : 'Search or create new',
+            hintText: artists.isEmpty
+                ? 'Enter artist name'
+                : 'Search or create new',
             border: const OutlineInputBorder(),
             errorText: widget.artistError,
-            suffixIcon:
-                artists.isNotEmpty ? const Icon(Icons.arrow_drop_down) : null,
+            suffixIcon: artists.isNotEmpty
+                ? const Icon(Icons.arrow_drop_down)
+                : null,
           ),
           textCapitalization: TextCapitalization.words,
         );
       },
       optionsViewBuilder: (context, onSelected, options) =>
           _OptionsOverlay<ArtistOption>(
-        options: options,
-        labelFor: (o) => o.name,
-        onSelected: onSelected,
-      ),
+            options: options,
+            labelFor: (o) => o.name,
+            onSelected: onSelected,
+          ),
     );
   }
 
@@ -347,8 +348,9 @@ class _AddSongStep1State extends ConsumerState<AddSongStep1> {
               ? 'Search or create new'
               : 'Enter album title (optional)',
           border: const OutlineInputBorder(),
-          suffixIcon:
-              albums.isNotEmpty ? const Icon(Icons.arrow_drop_down) : null,
+          suffixIcon: albums.isNotEmpty
+              ? const Icon(Icons.arrow_drop_down)
+              : null,
         ),
         textCapitalization: TextCapitalization.words,
       ),
@@ -386,7 +388,9 @@ class _OptionsOverlay<T> extends StatelessWidget {
                 onTap: () => onSelected(option),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 12),
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   child: Text(labelFor(option)),
                 ),
               );

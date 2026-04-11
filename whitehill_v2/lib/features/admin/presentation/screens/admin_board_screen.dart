@@ -30,10 +30,9 @@ class _AdminBoardScreenState extends ConsumerState<AdminBoardScreen> {
               children: [
                 Text(
                   'Admin Board',
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 48),
@@ -56,9 +55,7 @@ class _AdminBoardScreenState extends ConsumerState<AdminBoardScreen> {
                     }
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => const AddSongScreen(),
-                      ),
+                      MaterialPageRoute(builder: (_) => const AddSongScreen()),
                     );
                   },
                   icon: Icon(isOnline ? Icons.add : Icons.cloud_off_rounded),

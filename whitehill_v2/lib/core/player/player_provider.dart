@@ -80,21 +80,19 @@ class GlobalPlayerNotifier extends StateNotifier<GlobalPlayerState> {
     // Drive isLoading from the player's own processing state so it can never
     // get stuck — loading is true only while just_audio is in the loading phase.
     // When playback completes, seek back to 0 and pause.
-    _processingSub = _handler.player.processingStateStream.listen(
-      (ps) {
-        if (ps == ProcessingState.completed) {
-          _handler.seek(Duration.zero);
-          _handler.pause();
-          state = state.copyWith(
-            isPlaying: false,
-            isLoading: false,
-            position: Duration.zero,
-          );
-        } else {
-          state = state.copyWith(isLoading: ps == ProcessingState.loading);
-        }
-      },
-    );
+    _processingSub = _handler.player.processingStateStream.listen((ps) {
+      if (ps == ProcessingState.completed) {
+        _handler.seek(Duration.zero);
+        _handler.pause();
+        state = state.copyWith(
+          isPlaying: false,
+          isLoading: false,
+          position: Duration.zero,
+        );
+      } else {
+        state = state.copyWith(isLoading: ps == ProcessingState.loading);
+      }
+    });
   }
 
   /// Loads [song]. If the same song is already loaded, does nothing (preserves
@@ -206,5 +204,5 @@ class GlobalPlayerNotifier extends StateNotifier<GlobalPlayerState> {
 /// Global, non-autoDispose player provider — survives screen navigation.
 final globalPlayerProvider =
     StateNotifierProvider<GlobalPlayerNotifier, GlobalPlayerState>(
-  (ref) => GlobalPlayerNotifier(ref.watch(audioHandlerProvider)),
-);
+      (ref) => GlobalPlayerNotifier(ref.watch(audioHandlerProvider)),
+    );

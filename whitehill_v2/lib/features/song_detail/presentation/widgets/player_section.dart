@@ -37,10 +37,9 @@ class _PlayerSectionState extends ConsumerState<PlayerSection>
       // already loaded (even paused), leave it alone — the user must press play
       // to explicitly switch. This prevents wiping a paused song's position.
       if (playerState.hasCurrentSong) return;
-      ref
-          .read(globalPlayerProvider.notifier)
-          .playSong(widget.song)
-          .catchError((e) {
+      ref.read(globalPlayerProvider.notifier).playSong(widget.song).catchError((
+        e,
+      ) {
         if (!mounted) return;
         final message = e is AudioPlaybackException
             ? e.message
@@ -54,12 +53,14 @@ class _PlayerSectionState extends ConsumerState<PlayerSection>
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     )..repeat();
-    _translateAnimation = Tween<double>(begin: 0, end: 10).animate(
-      CurvedAnimation(parent: _loopController, curve: Curves.easeIn),
-    );
-    _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
-      CurvedAnimation(parent: _loopController, curve: Curves.easeIn),
-    );
+    _translateAnimation = Tween<double>(
+      begin: 0,
+      end: 10,
+    ).animate(CurvedAnimation(parent: _loopController, curve: Curves.easeIn));
+    _fadeAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(parent: _loopController, curve: Curves.easeIn));
   }
 
   @override
@@ -86,17 +87,21 @@ class _PlayerSectionState extends ConsumerState<PlayerSection>
     final isThisPlaying = isCurrent && player.isPlaying;
     final isOnline = ref.watch(isOnlineProvider);
     final hasNoAudio = widget.song.storagePath == null;
-    final isSavedLocally = !hasNoAudio &&
+    final isSavedLocally =
+        !hasNoAudio &&
         ref.watch(audioDownloadProvider(widget.song.storagePath!)).status ==
             DownloadStatus.downloaded;
     final canPlay = !hasNoAudio && (isOnline || isSavedLocally);
     final displayPosition = isCurrent ? player.position : Duration.zero;
     // Show pre-fetched local duration when song isn't loaded in the player yet.
     final localDuration = (!hasNoAudio && isSavedLocally && !isCurrent)
-        ? ref.watch(localAudioDurationProvider(widget.song.storagePath!)).valueOrNull
+        ? ref
+              .watch(localAudioDurationProvider(widget.song.storagePath!))
+              .valueOrNull
         : null;
-    final displayDuration =
-        isCurrent ? player.duration : (localDuration ?? Duration.zero);
+    final displayDuration = isCurrent
+        ? player.duration
+        : (localDuration ?? Duration.zero);
     final progress = isCurrent && player.duration.inMilliseconds > 0
         ? player.position.inMilliseconds / player.duration.inMilliseconds
         : 0.0;
@@ -158,30 +163,34 @@ class _PlayerSectionState extends ConsumerState<PlayerSection>
                   _AutoScrollText(
                     text: widget.song.title,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   // Artist
                   Text(
                     widget.song.artistName ?? '',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: colorScheme.onSurface.withValues(alpha: 0.6),
-                        ),
+                      color: colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
                   ),
                   const SizedBox(height: 24),
                   // Seek bar
                   SliderTheme(
                     data: SliderTheme.of(context).copyWith(
-                      thumbShape:
-                          const RoundSliderThumbShape(enabledThumbRadius: 6),
-                      overlayShape:
-                          const RoundSliderOverlayShape(overlayRadius: 16),
+                      thumbShape: const RoundSliderThumbShape(
+                        enabledThumbRadius: 6,
+                      ),
+                      overlayShape: const RoundSliderOverlayShape(
+                        overlayRadius: 16,
+                      ),
                       trackHeight: 3,
                     ),
                     child: Slider(
                       value: progress.clamp(0.0, 1.0),
-                      onChanged: (isCurrent && !hasNoAudio) ? notifier.seek : null,
+                      onChanged: (isCurrent && !hasNoAudio)
+                          ? notifier.seek
+                          : null,
                     ),
                   ),
                   Padding(
@@ -189,10 +198,14 @@ class _PlayerSectionState extends ConsumerState<PlayerSection>
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(_fmt(displayPosition),
-                            style: Theme.of(context).textTheme.bodySmall),
-                        Text(_fmt(displayDuration),
-                            style: Theme.of(context).textTheme.bodySmall),
+                        Text(
+                          _fmt(displayPosition),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        Text(
+                          _fmt(displayDuration),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
                       ],
                     ),
                   ),
@@ -246,21 +259,23 @@ class _PlayerSectionState extends ConsumerState<PlayerSection>
                             ? const SizedBox(
                                 width: 32,
                                 height: 32,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : !canPlay
-                                ? Icon(
-                                    !isOnline
-                                        ? Icons.cloud_off_rounded
-                                        : Icons.music_off_rounded,
-                                    size: 32,
-                                  )
-                                : Icon(
-                                    isThisPlaying
-                                        ? Icons.pause_rounded
-                                        : Icons.play_arrow_rounded,
-                                    size: 32,
-                                  ),
+                            ? Icon(
+                                !isOnline
+                                    ? Icons.cloud_off_rounded
+                                    : Icons.music_off_rounded,
+                                size: 32,
+                              )
+                            : Icon(
+                                isThisPlaying
+                                    ? Icons.pause_rounded
+                                    : Icons.play_arrow_rounded,
+                                size: 32,
+                              ),
                       ),
                       const SizedBox(width: 12),
                       IconButton(
@@ -300,9 +315,9 @@ class _PlayerSectionState extends ConsumerState<PlayerSection>
               Text(
                 'lyrics',
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onSurface.withValues(alpha: 0.4),
-                      letterSpacing: 1.2,
-                    ),
+                  color: colorScheme.onSurface.withValues(alpha: 0.4),
+                  letterSpacing: 1.2,
+                ),
               ),
             ],
           ),
@@ -408,7 +423,8 @@ class _AutoScrollTextState extends State<_AutoScrollText> {
       await _scrollController.animateTo(
         maxExtent,
         duration: Duration(
-            milliseconds: (maxExtent * 25).clamp(2000, 8000).toInt()),
+          milliseconds: (maxExtent * 25).clamp(2000, 8000).toInt(),
+        ),
         curve: Curves.linear,
       );
       if (!mounted) break;
@@ -518,10 +534,26 @@ class _DownloadButton extends ConsumerWidget {
 
     final isSaved = dlState.status == DownloadStatus.downloaded;
 
-    final (IconData icon, String label, bool enabled) = switch (dlState.status) {
-      DownloadStatus.idle => (Icons.download_rounded, isOnline ? 'Save' : 'Save (Offline)', isOnline),
-      DownloadStatus.downloading => (Icons.downloading_rounded, 'Saving...', false),
-      DownloadStatus.downloaded => (Icons.delete_outline_rounded, 'Saved', true),
+    final (
+      IconData icon,
+      String label,
+      bool enabled,
+    ) = switch (dlState.status) {
+      DownloadStatus.idle => (
+        Icons.download_rounded,
+        isOnline ? 'Save' : 'Save (Offline)',
+        isOnline,
+      ),
+      DownloadStatus.downloading => (
+        Icons.downloading_rounded,
+        'Saving...',
+        false,
+      ),
+      DownloadStatus.downloaded => (
+        Icons.delete_outline_rounded,
+        'Saved',
+        true,
+      ),
       DownloadStatus.error => (Icons.error_outline_rounded, 'Retry', isOnline),
     };
 
@@ -544,10 +576,14 @@ class _DownloadButton extends ConsumerWidget {
                   .read(audioDownloadProvider(song.storagePath!).notifier)
                   .download(song.storagePath!);
               if (!context.mounted) return;
-              final newState = ref.read(audioDownloadProvider(song.storagePath!));
+              final newState = ref.read(
+                audioDownloadProvider(song.storagePath!),
+              );
               if (newState.status == DownloadStatus.downloaded) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Audio saved for offline playback')),
+                  const SnackBar(
+                    content: Text('Audio saved for offline playback'),
+                  ),
                 );
               } else if (newState.status == DownloadStatus.error) {
                 ScaffoldMessenger.of(context).showSnackBar(

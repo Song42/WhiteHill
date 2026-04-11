@@ -29,12 +29,16 @@ class MiniPlayerBar extends ConsumerWidget {
             pageBuilder: (_, _, _) => SongDetailScreen(song: song),
             transitionsBuilder: (_, animation, _, child) {
               return SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, 1),
-                  end: Offset.zero,
-                ).animate(
-                  CurvedAnimation(parent: animation, curve: Curves.easeInOut),
-                ),
+                position:
+                    Tween<Offset>(
+                      begin: const Offset(0, 1),
+                      end: Offset.zero,
+                    ).animate(
+                      CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeInOut,
+                      ),
+                    ),
                 child: child,
               );
             },
@@ -96,21 +100,20 @@ class MiniPlayerBar extends ConsumerWidget {
                       children: [
                         Text(
                           song.title,
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         if (song.artistName != null)
                           Text(
                             song.artistName!,
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurface
-                                          .withValues(alpha: 0.6),
-                                    ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: colorScheme.onSurface.withValues(
+                                    alpha: 0.6,
+                                  ),
+                                ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -133,8 +136,7 @@ class MiniPlayerBar extends ConsumerWidget {
                                 ? Icons.pause_rounded
                                 : Icons.play_arrow_rounded,
                           ),
-                    onPressed:
-                        player.isLoading ? null : notifier.togglePlay,
+                    onPressed: player.isLoading ? null : notifier.togglePlay,
                   ),
                 ],
               ),

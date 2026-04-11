@@ -15,8 +15,8 @@ enum AppRole {
         return 'WORSHIP LEADER';
       case AppRole.worshipTeam:
         return 'WORSHIP TEAM';
-			case AppRole.member:
-				return 'MEMBER';
+      case AppRole.member:
+        return 'MEMBER';
       default:
         return name.toUpperCase();
     }
@@ -74,10 +74,7 @@ final profileProvider = FutureProvider<UserProfile>((ref) async {
   if (session == null) throw StateError('Not authenticated');
 
   final client = Supabase.instance.client;
-  final rows = await client
-      .from('profiles')
-      .select()
-      .eq('id', session.user.id);
+  final rows = await client.from('profiles').select().eq('id', session.user.id);
 
   if (rows.isNotEmpty) return UserProfile.fromMap(rows.first);
 
@@ -90,7 +87,11 @@ final profileProvider = FutureProvider<UserProfile>((ref) async {
     'nickname': meta['full_name'] ?? user.email?.split('@').first ?? '',
     'avatar_url': meta['avatar_url'],
   };
-  final inserted = await client.from('profiles').insert(newRow).select().single();
+  final inserted = await client
+      .from('profiles')
+      .insert(newRow)
+      .select()
+      .single();
   return UserProfile.fromMap(inserted);
 });
 

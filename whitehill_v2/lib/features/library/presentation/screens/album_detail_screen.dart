@@ -31,8 +31,7 @@ class _AlbumDetailScreenState extends ConsumerState<AlbumDetailScreen> {
     if (keyContext == null) return false;
     final box = keyContext.findRenderObject() as RenderBox;
     final position = box.localToGlobal(Offset.zero);
-    final appBarHeight =
-        kToolbarHeight + MediaQuery.of(context).padding.top;
+    final appBarHeight = kToolbarHeight + MediaQuery.of(context).padding.top;
     final titleBottom = position.dy + box.size.height;
     final shouldShow = titleBottom < appBarHeight;
     if (shouldShow != _showTitleInAppBar) {
@@ -40,8 +39,6 @@ class _AlbumDetailScreenState extends ConsumerState<AlbumDetailScreen> {
     }
     return false;
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -53,84 +50,84 @@ class _AlbumDetailScreenState extends ConsumerState<AlbumDetailScreen> {
       body: NotificationListener<ScrollNotification>(
         onNotification: _onScrollNotification,
         child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              // --- App bar with back button only ---
-              SliverAppBar(
-                pinned: true,
-                centerTitle: true,
-                backgroundColor: colorScheme.surface,
-                surfaceTintColor: Colors.transparent,
-                scrolledUnderElevation: 0,
-                title: AnimatedOpacity(
-                  opacity: _showTitleInAppBar ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 200),
-                  child: Text(
-                    album.title.toUpperCase(),
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            // --- App bar with back button only ---
+            SliverAppBar(
+              pinned: true,
+              centerTitle: true,
+              backgroundColor: colorScheme.surface,
+              surfaceTintColor: Colors.transparent,
+              scrolledUnderElevation: 0,
+              title: AnimatedOpacity(
+                opacity: _showTitleInAppBar ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 200),
+                child: Text(
+                  album.title.toUpperCase(),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
+            ),
 
-              // --- Centered square cover ---
-              SliverToBoxAdapter(
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 280),
-                      child: AspectRatio(
-                        aspectRatio: 1,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: album.coverUrl != null
-                              ? CachedNetworkImage(
-                                  imageUrl: album.coverUrl!,
-                                  fit: BoxFit.cover,
-                                  memCacheWidth: 900,
-                                  placeholder: (_, _) => ColoredBox(
-                                    color:
-                                        colorScheme.surfaceContainerHighest,
-                                  ),
-                                  errorWidget: (_, _, _) =>
-                                      _coverPlaceholder(colorScheme),
-                                )
-                              : _coverPlaceholder(colorScheme),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              // --- Album title + artist name ---
-              SliverToBoxAdapter(
+            // --- Centered square cover ---
+            SliverToBoxAdapter(
+              child: Center(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        album.title,
-                        key: _titleKey,
-                        style: theme.textTheme.headlineSmall
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 280),
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: album.coverUrl != null
+                            ? CachedNetworkImage(
+                                imageUrl: album.coverUrl!,
+                                fit: BoxFit.cover,
+                                memCacheWidth: 900,
+                                placeholder: (_, _) => ColoredBox(
+                                  color: colorScheme.surfaceContainerHighest,
+                                ),
+                                errorWidget: (_, _, _) =>
+                                    _coverPlaceholder(colorScheme),
+                              )
+                            : _coverPlaceholder(colorScheme),
                       ),
-                      if (album.artistName.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          album.artistName,
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ],
+                    ),
                   ),
                 ),
               ),
+            ),
+
+            // --- Album title + artist name ---
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      album.title,
+                      key: _titleKey,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (album.artistName.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        album.artistName,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
 
             // --- Content below ---
             ...songsAsync.when(
@@ -143,8 +140,7 @@ class _AlbumDetailScreenState extends ConsumerState<AlbumDetailScreen> {
                 SliverFillRemaining(
                   child: ErrorView(
                     error: e,
-                    onRetry: () =>
-                        ref.invalidate(albumSongsProvider(album.id)),
+                    onRetry: () => ref.invalidate(albumSongsProvider(album.id)),
                   ),
                 ),
               ],
@@ -182,21 +178,24 @@ class _AlbumDetailScreenState extends ConsumerState<AlbumDetailScreen> {
                             PageRouteBuilder(
                               pageBuilder: (_, _, _) =>
                                   SongDetailScreen(song: song),
-                              transitionsBuilder:
-                                  (_, animation, _, child) {
+                              transitionsBuilder: (_, animation, _, child) {
                                 return SlideTransition(
-                                  position: Tween<Offset>(
-                                    begin: const Offset(0, 1),
-                                    end: Offset.zero,
-                                  ).animate(CurvedAnimation(
-                                    parent: animation,
-                                    curve: Curves.easeInOut,
-                                  )),
+                                  position:
+                                      Tween<Offset>(
+                                        begin: const Offset(0, 1),
+                                        end: Offset.zero,
+                                      ).animate(
+                                        CurvedAnimation(
+                                          parent: animation,
+                                          curve: Curves.easeInOut,
+                                        ),
+                                      ),
                                   child: child,
                                 );
                               },
-                              transitionDuration:
-                                  const Duration(milliseconds: 400),
+                              transitionDuration: const Duration(
+                                milliseconds: 400,
+                              ),
                             ),
                           ),
                         );
@@ -238,8 +237,7 @@ class _ActionButtons extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isOnline = ref.watch(isOnlineProvider);
-    final playableSongs =
-        songs.where((s) => s.storagePath != null).toList();
+    final playableSongs = songs.where((s) => s.storagePath != null).toList();
     final hasPlayable = playableSongs.isNotEmpty;
 
     // Check how many are already saved locally.
@@ -249,9 +247,11 @@ class _ActionButtons extends ConsumerWidget {
       if (dlState.status == DownloadStatus.downloaded) savedCount++;
     }
     final allSaved = hasPlayable && savedCount == playableSongs.length;
-    final isSaving = playableSongs.any((s) =>
-        ref.watch(audioDownloadProvider(s.storagePath!)).status ==
-        DownloadStatus.downloading);
+    final isSaving = playableSongs.any(
+      (s) =>
+          ref.watch(audioDownloadProvider(s.storagePath!)).status ==
+          DownloadStatus.downloading,
+    );
 
     return Row(
       children: [
@@ -271,9 +271,9 @@ class _ActionButtons extends ConsumerWidget {
                     if (!context.mounted) return;
                     ScaffoldMessenger.of(context)
                       ..clearSnackBars()
-                      ..showSnackBar(const SnackBar(
-                        content: Text('Failed to play audio.'),
-                      ));
+                      ..showSnackBar(
+                        const SnackBar(content: Text('Failed to play audio.')),
+                      );
                   }
                 }
               : null,
@@ -291,14 +291,18 @@ class _ActionButtons extends ConsumerWidget {
                   height: 18,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : Icon(allSaved
-                  ? Icons.download_done_rounded
-                  : Icons.download_rounded),
-          label: Text(allSaved
-              ? 'All Saved'
-              : isSaving
-                  ? 'Saving...'
-                  : 'Save All'),
+              : Icon(
+                  allSaved
+                      ? Icons.download_done_rounded
+                      : Icons.download_rounded,
+                ),
+          label: Text(
+            allSaved
+                ? 'All Saved'
+                : isSaving
+                ? 'Saving...'
+                : 'Save All',
+          ),
         ),
       ],
     );
@@ -336,10 +340,7 @@ class _SongTile extends ConsumerWidget {
   final Song song;
   final VoidCallback onTap;
 
-  const _SongTile({
-    required this.song,
-    required this.onTap,
-  });
+  const _SongTile({required this.song, required this.onTap});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -352,8 +353,7 @@ class _SongTile extends ConsumerWidget {
     return ListTile(
       visualDensity: const VisualDensity(vertical: 2),
       leading: isPlaying
-          ? Icon(Icons.equalizer_rounded,
-              color: colorScheme.primary, size: 22)
+          ? Icon(Icons.equalizer_rounded, color: colorScheme.primary, size: 22)
           : null,
       title: Text(
         song.title,
@@ -405,9 +405,7 @@ class _SongTrailingButton extends ConsumerWidget {
               height: 20,
               child: CircularProgressIndicator(strokeWidth: 2),
             )
-          : Icon(isPlaying
-              ? Icons.pause_rounded
-              : Icons.play_arrow_rounded),
+          : Icon(isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded),
       onPressed: isLoading
           ? null
           : () async {
@@ -427,9 +425,9 @@ class _SongTrailingButton extends ConsumerWidget {
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context)
                   ..clearSnackBars()
-                  ..showSnackBar(const SnackBar(
-                    content: Text('Failed to play audio.'),
-                  ));
+                  ..showSnackBar(
+                    const SnackBar(content: Text('Failed to play audio.')),
+                  );
               }
             },
     );

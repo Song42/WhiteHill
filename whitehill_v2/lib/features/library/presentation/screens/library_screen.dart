@@ -65,13 +65,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         pageBuilder: (_, _, _) =>
             SongDetailScreen(song: song, initialPage: initialPage),
         transitionsBuilder: (_, animation, _, child) => SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, 1),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeInOut,
-          )),
+          position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+              .animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+              ),
           child: child,
         ),
         transitionDuration: const Duration(milliseconds: 400),
@@ -86,46 +83,45 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     final theme = Theme.of(context);
 
     return CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          SliverAppBar(
-            pinned: true,
-            scrolledUnderElevation: 0,
-            title: Text(
-              'Library',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(64),
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: SearchBar(
-                  controller: _searchController,
-                  hintText: 'Search albums or songs',
-                  leading: const Padding(
-                    padding: EdgeInsets.only(left: 8),
-                    child: Icon(Icons.search),
-                  ),
-                  trailing: [
-                    if (_searchController.text.isNotEmpty)
-                      IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: _clearSearch,
-                      ),
-                  ],
-                  onChanged: _onSearchChanged,
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
+        SliverAppBar(
+          pinned: true,
+          scrolledUnderElevation: 0,
+          title: Text(
+            'Library',
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(64),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: SearchBar(
+                controller: _searchController,
+                hintText: 'Search albums or songs',
+                leading: const Padding(
+                  padding: EdgeInsets.only(left: 8),
+                  child: Icon(Icons.search),
                 ),
+                trailing: [
+                  if (_searchController.text.isNotEmpty)
+                    IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: _clearSearch,
+                    ),
+                ],
+                onChanged: _onSearchChanged,
               ),
             ),
           ),
-          if (isSearching)
-            ..._buildSearchResults(theme)
-          else
-            ..._buildBrowseView(theme),
-        ],
+        ),
+        if (isSearching)
+          ..._buildSearchResults(theme)
+        else
+          ..._buildBrowseView(theme),
+      ],
     );
   }
 
@@ -188,8 +184,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
             child: Text(
               'Albums',
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),
@@ -219,8 +216,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
             child: Text(
               'Songs',
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),
@@ -235,33 +233,38 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
               subtitle: song.artistName ?? '',
               thumbnailUrl: song.coverUrl,
               isPlaying: isCurrent && player.isPlaying,
-              onPlayTap: song.storagePath == null ? null : () async {
-                final notifier = ref.read(globalPlayerProvider.notifier);
-                if (isCurrent) {
-                  notifier.togglePlay();
-                  return;
-                }
-                // Fetch full song to get audio_path, then play
-                final full =
-                    await ref.read(songByIdProvider(song.id).future);
-                if (full.storagePath == null) return;
-                try {
-                  await notifier.playSong(full);
-                  notifier.play();
-                } on AudioPlaybackException catch (e) {
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context)
-                    ..clearSnackBars()
-                    ..showSnackBar(SnackBar(content: Text(e.message)));
-                } catch (_) {
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context)
-                    ..clearSnackBars()
-                    ..showSnackBar(const SnackBar(
-                      content: Text('Failed to play audio.'),
-                    ));
-                }
-              },
+              onPlayTap: song.storagePath == null
+                  ? null
+                  : () async {
+                      final notifier = ref.read(globalPlayerProvider.notifier);
+                      if (isCurrent) {
+                        notifier.togglePlay();
+                        return;
+                      }
+                      // Fetch full song to get audio_path, then play
+                      final full = await ref.read(
+                        songByIdProvider(song.id).future,
+                      );
+                      if (full.storagePath == null) return;
+                      try {
+                        await notifier.playSong(full);
+                        notifier.play();
+                      } on AudioPlaybackException catch (e) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context)
+                          ..clearSnackBars()
+                          ..showSnackBar(SnackBar(content: Text(e.message)));
+                      } catch (_) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context)
+                          ..clearSnackBars()
+                          ..showSnackBar(
+                            const SnackBar(
+                              content: Text('Failed to play audio.'),
+                            ),
+                          );
+                      }
+                    },
               onTap: () => _openSongDetail(song.id),
             );
           },
@@ -308,8 +311,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
                       'Recently Updated Albums',
-                      style: theme.textTheme.titleLarge
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -331,8 +335,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                             onTap: () => Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) =>
-                                    AlbumDetailScreen(album: album),
+                                builder: (_) => AlbumDetailScreen(album: album),
                               ),
                             ),
                           ),
@@ -362,8 +365,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                   child: Text(
                     'Recently Added',
-                    style: theme.textTheme.titleLarge
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -374,28 +378,30 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                   itemBuilder: (context, index) {
                     final song = songs[index];
                     void openDetail(int initialPage) => Navigator.push(
-                          context,
-                          PageRouteBuilder(
-                            pageBuilder: (_, _, _) => SongDetailScreen(
-                              song: song,
-                              initialPage: initialPage,
-                            ),
-                            transitionsBuilder: (_, animation, _, child) {
-                              return SlideTransition(
-                                position: Tween<Offset>(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder: (_, _, _) => SongDetailScreen(
+                          song: song,
+                          initialPage: initialPage,
+                        ),
+                        transitionsBuilder: (_, animation, _, child) {
+                          return SlideTransition(
+                            position:
+                                Tween<Offset>(
                                   begin: const Offset(0, 1),
                                   end: Offset.zero,
-                                ).animate(CurvedAnimation(
-                                  parent: animation,
-                                  curve: Curves.easeInOut,
-                                )),
-                                child: child,
-                              );
-                            },
-                            transitionDuration:
-                                const Duration(milliseconds: 400),
-                          ),
-                        );
+                                ).animate(
+                                  CurvedAnimation(
+                                    parent: animation,
+                                    curve: Curves.easeInOut,
+                                  ),
+                                ),
+                            child: child,
+                          );
+                        },
+                        transitionDuration: const Duration(milliseconds: 400),
+                      ),
+                    );
                     final player = ref.watch(globalPlayerProvider);
                     final isCurrent = player.currentSong?.id == song.id;
                     return SongCard(
@@ -408,8 +414,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                       isPlaying: isCurrent && player.isPlaying,
                       onPlayTap: song.storagePath != null
                           ? () async {
-                              final notifier =
-                                  ref.read(globalPlayerProvider.notifier);
+                              final notifier = ref.read(
+                                globalPlayerProvider.notifier,
+                              );
                               try {
                                 if (isCurrent) {
                                   notifier.togglePlay();
@@ -422,14 +429,17 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                                 ScaffoldMessenger.of(context)
                                   ..clearSnackBars()
                                   ..showSnackBar(
-                                      SnackBar(content: Text(e.message)));
+                                    SnackBar(content: Text(e.message)),
+                                  );
                               } catch (_) {
                                 if (!context.mounted) return;
                                 ScaffoldMessenger.of(context)
                                   ..clearSnackBars()
-                                  ..showSnackBar(const SnackBar(
-                                    content: Text('Failed to play audio.'),
-                                  ));
+                                  ..showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Failed to play audio.'),
+                                    ),
+                                  );
                               }
                             }
                           : null,
@@ -489,11 +499,7 @@ class _SearchResultTile extends StatelessWidget {
               : _placeholder(colorScheme),
         ),
       ),
-      title: Text(
-        title,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
+      title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Text(
         subtitle,
         maxLines: 1,
@@ -515,7 +521,11 @@ class _SearchResultTile extends StatelessWidget {
   Widget _placeholder(ColorScheme colorScheme) {
     return ColoredBox(
       color: colorScheme.surfaceContainerHighest,
-      child: Icon(Icons.music_note, color: colorScheme.onSurfaceVariant, size: 20),
+      child: Icon(
+        Icons.music_note,
+        color: colorScheme.onSurfaceVariant,
+        size: 20,
+      ),
     );
   }
 }

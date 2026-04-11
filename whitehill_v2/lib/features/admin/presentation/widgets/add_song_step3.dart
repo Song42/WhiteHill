@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:whitehill_v2/features/admin/presentation/providers/add_song_provider.dart';
+
 class AddSongStep3 extends ConsumerWidget {
   const AddSongStep3({super.key});
 
@@ -20,8 +21,10 @@ class AddSongStep3 extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Audio & Thumbnail',
-              style: Theme.of(context).textTheme.titleLarge),
+          Text(
+            'Audio & Thumbnail',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
           const SizedBox(height: 24),
           _FilePickerTile(
             label: 'Audio File',
@@ -42,7 +45,9 @@ class AddSongStep3 extends ConsumerWidget {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('File picker unavailable — try a full restart'),
+                      content: Text(
+                        'File picker unavailable — try a full restart',
+                      ),
                     ),
                   );
                 }
@@ -54,11 +59,12 @@ class AddSongStep3 extends ConsumerWidget {
             label: 'Album Thumbnail',
             icon: Icons.image_outlined,
             fileName: state.thumbnailFileName,
-            statusMessage: existingThumbnail != null && state.thumbnailFileName != null
+            statusMessage:
+                existingThumbnail != null && state.thumbnailFileName != null
                 ? 'The existing cover for this album will be updated'
                 : existingThumbnail != null
-                    ? 'The existing cover for this album will be applied automatically'
-                    : null,
+                ? 'The existing cover for this album will be applied automatically'
+                : null,
             isStatusPositive: existingThumbnail != null,
             onPick: () async {
               try {
@@ -71,8 +77,7 @@ class AddSongStep3 extends ConsumerWidget {
                 final colorScheme = Theme.of(context).colorScheme;
                 final cropped = await ImageCropper().cropImage(
                   sourcePath: result.files.single.path!,
-                  aspectRatio:
-                      const CropAspectRatio(ratioX: 1, ratioY: 1),
+                  aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
                   compressQuality: 85,
                   uiSettings: [
                     AndroidUiSettings(
@@ -100,7 +105,9 @@ class AddSongStep3 extends ConsumerWidget {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('File picker unavailable — try a full restart'),
+                      content: Text(
+                        'File picker unavailable — try a full restart',
+                      ),
                     ),
                   );
                 }
@@ -120,7 +127,8 @@ class AddSongStep3 extends ConsumerWidget {
                   placeholder: (_, _) => const AspectRatio(
                     aspectRatio: 1,
                     child: Center(
-                        child: CircularProgressIndicator(strokeWidth: 2)),
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
                   ),
                   errorWidget: (_, _, _) => const AspectRatio(
                     aspectRatio: 1,
@@ -185,20 +193,17 @@ class _FilePickerTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label,
-                      style: Theme.of(context).textTheme.labelLarge),
+                  Text(label, style: Theme.of(context).textTheme.labelLarge),
                   const SizedBox(height: 2),
                   Text(
-                    isPicked
-                        ? fileName!
-                        : statusMessage ?? 'Not selected',
+                    isPicked ? fileName! : statusMessage ?? 'Not selected',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: isPicked
-                              ? colorScheme.primary
-                              : statusMessage != null && isStatusPositive
-                                  ? Colors.green
-                                  : colorScheme.error,
-                        ),
+                      color: isPicked
+                          ? colorScheme.primary
+                          : statusMessage != null && isStatusPositive
+                          ? Colors.green
+                          : colorScheme.error,
+                    ),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 2,
                   ),

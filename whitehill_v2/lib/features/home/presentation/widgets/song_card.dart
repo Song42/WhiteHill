@@ -36,7 +36,11 @@ class SongCard extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              _Thumbnail(url: thumbnailUrl, onPlayTap: onPlayTap, isPlaying: isPlaying),
+              _Thumbnail(
+                url: thumbnailUrl,
+                onPlayTap: onPlayTap,
+                isPlaying: isPlaying,
+              ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -44,8 +48,9 @@ class SongCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: theme.textTheme.titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w600),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -111,7 +116,9 @@ class _Thumbnail extends StatelessWidget {
                   onTap: onPlayTap,
                   child: Center(
                     child: Icon(
-                      isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                      isPlaying
+                          ? Icons.pause_rounded
+                          : Icons.play_arrow_rounded,
                       color: Colors.white,
                       size: 28,
                     ),

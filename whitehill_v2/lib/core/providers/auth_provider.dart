@@ -8,8 +8,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// Listens to `onAuthStateChange` so UI rebuilds automatically on login/logout.
 final authStateProvider =
     StateNotifierProvider<AuthStateNotifier, AsyncValue<Session?>>(
-  (ref) => AuthStateNotifier(),
-);
+      (ref) => AuthStateNotifier(),
+    );
 
 class AuthStateNotifier extends StateNotifier<AsyncValue<Session?>> {
   AuthStateNotifier() : super(const AsyncValue.loading()) {

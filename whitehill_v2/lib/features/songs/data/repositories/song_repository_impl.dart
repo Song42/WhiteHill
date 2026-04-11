@@ -69,14 +69,14 @@ class SongRepositoryImpl implements SongRepository {
 
   @override
   Future<List<Song>> getSelectedSongs() => _guard(() async {
-        final data = await _client
-            .from('selected_songs')
-            .select('song_id, songs($_songSelect)');
-        return (data as List).map((e) {
-          final songJson = e['songs'] as Map<String, dynamic>;
-          return SongModel.fromJson(_resolveJson(songJson));
-        }).toList();
-      });
+    final data = await _client
+        .from('selected_songs')
+        .select('song_id, songs($_songSelect)');
+    return (data as List).map((e) {
+      final songJson = e['songs'] as Map<String, dynamic>;
+      return SongModel.fromJson(_resolveJson(songJson));
+    }).toList();
+  });
 
   @override
   Future<void> saveSelections({
@@ -84,63 +84,58 @@ class SongRepositoryImpl implements SongRepository {
     required Set<String> toRemove,
     required Set<String> allSelected,
   }) => _guard(() async {
-        // Remove deselected rows from selected_songs
-        if (toRemove.isNotEmpty) {
-          await _client
-              .from('selected_songs')
-              .delete()
-              .inFilter('song_id', toRemove.toList());
-        }
-        // Insert newly selected rows into selected_songs
-        if (toAdd.isNotEmpty) {
-          await _client.from('selected_songs').insert(
-              toAdd.map((id) => {'song_id': id}).toList());
-        }
-        // Increment total_selections & last_selected_at for ALL selected songs
-        for (final id in allSelected) {
-          await _client.rpc('increment_song_selection', params: {'song_id': id});
-        }
-      });
+    // Remove deselected rows from selected_songs
+    if (toRemove.isNotEmpty) {
+      await _client
+          .from('selected_songs')
+          .delete()
+          .inFilter('song_id', toRemove.toList());
+    }
+    // Insert newly selected rows into selected_songs
+    if (toAdd.isNotEmpty) {
+      await _client
+          .from('selected_songs')
+          .insert(toAdd.map((id) => {'song_id': id}).toList());
+    }
+    // Increment total_selections & last_selected_at for ALL selected songs
+    for (final id in allSelected) {
+      await _client.rpc('increment_song_selection', params: {'song_id': id});
+    }
+  });
 
   @override
   Future<List<Song>> getSongSummaries() => _guard(() async {
-        const select =
-            'id, title, total_selections, last_selected_at, '
-            'albums(cover_url, artists(name))';
-        final data = await _client
-            .from('songs')
-            .select(select)
-            .order('title');
-        return (data as List)
-            .map((e) => SongModel.fromJson(_resolveJson(e)))
-            .toList();
-      });
+    const select =
+        'id, title, total_selections, last_selected_at, '
+        'albums(cover_url, artists(name))';
+    final data = await _client.from('songs').select(select).order('title');
+    return (data as List)
+        .map((e) => SongModel.fromJson(_resolveJson(e)))
+        .toList();
+  });
 
   @override
   Future<Song> getSongById(String id) => _guard(() async {
-        final data = await _client
-            .from('songs')
-            .select(_songSelect)
-            .eq('id', id)
-            .maybeSingle();
+    final data = await _client
+        .from('songs')
+        .select(_songSelect)
+        .eq('id', id)
+        .maybeSingle();
 
-        if (data == null) throw const SongNotFoundException('Song not found.');
-        return SongModel.fromJson(_resolveJson(data));
-      });
+    if (data == null) throw const SongNotFoundException('Song not found.');
+    return SongModel.fromJson(_resolveJson(data));
+  });
 
   // ---------------------------------------------------------------------------
   // Internals
   // ---------------------------------------------------------------------------
 
   Future<List<SongModel>> _fetchSongsFromRemote() => _guard(() async {
-        final data = await _client
-            .from('songs')
-            .select(_songSelect)
-            .order('title');
-        return (data as List)
-            .map((e) => SongModel.fromJson(_resolveJson(e)))
-            .toList();
-      });
+    final data = await _client.from('songs').select(_songSelect).order('title');
+    return (data as List)
+        .map((e) => SongModel.fromJson(_resolveJson(e)))
+        .toList();
+  });
 
   /// Converts a storage path in `cover_url` to a public URL so that
   /// [CachedNetworkImage] can load the thumbnail directly.
@@ -149,8 +144,7 @@ class SongRepositoryImpl implements SongRepository {
     if (album == null) return json;
     final rawPath = album['cover_url'] as String?;
     if (rawPath == null || rawPath.startsWith('http')) return json;
-    final publicUrl =
-        _client.storage.from(_kImageBucket).getPublicUrl(rawPath);
+    final publicUrl = _client.storage.from(_kImageBucket).getPublicUrl(rawPath);
     return {
       ...json,
       'albums': {...album, 'cover_url': publicUrl},
@@ -167,7 +161,8 @@ class SongRepositoryImpl implements SongRepository {
       throw SongDatabaseException('Database error: ${e.message}');
     } on SocketException {
       throw const SongNetworkException(
-          'No internet connection. Please check your network.');
+        'No internet connection. Please check your network.',
+      );
     } on AuthException catch (e) {
       throw SongDatabaseException('Auth error: ${e.message}');
     } catch (e) {

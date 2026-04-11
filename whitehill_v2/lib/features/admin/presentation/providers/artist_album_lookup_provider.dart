@@ -14,42 +14,47 @@ class AlbumOption {
   const AlbumOption({required this.id, required this.title, this.coverUrl});
 }
 
-final allArtistsProvider =
-    FutureProvider.autoDispose<List<ArtistOption>>((ref) async {
-  final data = await Supabase.instance.client
-      .from('artists')
-      .select('id, name')
-      .order('name') as List;
+final allArtistsProvider = FutureProvider.autoDispose<List<ArtistOption>>((
+  ref,
+) async {
+  final data =
+      await Supabase.instance.client
+              .from('artists')
+              .select('id, name')
+              .order('name')
+          as List;
   return data
-      .map((r) =>
-          ArtistOption(id: r['id'] as String, name: r['name'] as String))
+      .map(
+        (r) => ArtistOption(id: r['id'] as String, name: r['name'] as String),
+      )
       .toList();
 });
 
 /// Fetches albums for an artist, including cover_url so step 3 can show the
 /// existing thumbnail without an extra request.
-final albumsByArtistProvider =
-    FutureProvider.autoDispose.family<List<AlbumOption>, String>(
-        (ref, artistId) async {
-  if (artistId.isEmpty) return [];
-  final data = await Supabase.instance.client
-      .from('albums')
-      .select('id, title, cover_url')
-      .eq('artist_id', artistId)
-      .order('title') as List;
-  final client = Supabase.instance.client;
-  return data.map((r) {
-    String? coverUrl = r['cover_url'] as String?;
-    if (coverUrl != null && !coverUrl.startsWith('http')) {
-      coverUrl = client.storage.from('media').getPublicUrl(coverUrl);
-    }
-    return AlbumOption(
-      id: r['id'] as String,
-      title: r['title'] as String,
-      coverUrl: coverUrl,
-    );
-  }).toList();
-});
+final albumsByArtistProvider = FutureProvider.autoDispose
+    .family<List<AlbumOption>, String>((ref, artistId) async {
+      if (artistId.isEmpty) return [];
+      final data =
+          await Supabase.instance.client
+                  .from('albums')
+                  .select('id, title, cover_url')
+                  .eq('artist_id', artistId)
+                  .order('title')
+              as List;
+      final client = Supabase.instance.client;
+      return data.map((r) {
+        String? coverUrl = r['cover_url'] as String?;
+        if (coverUrl != null && !coverUrl.startsWith('http')) {
+          coverUrl = client.storage.from('media').getPublicUrl(coverUrl);
+        }
+        return AlbumOption(
+          id: r['id'] as String,
+          title: r['title'] as String,
+          coverUrl: coverUrl,
+        );
+      }).toList();
+    });
 
 /// Returns true if a song with [title] already exists under the same
 /// artist + album scope. Uses cached IDs when available (1 request instead of 3).
@@ -107,10 +112,12 @@ Future<bool> checkSongTitleExists({
     return result != null;
   } else {
     // No album — check across all albums by this artist
-    final albums = await client
-        .from('albums')
-        .select('id')
-        .eq('artist_id', resolvedArtistId) as List;
+    final albums =
+        await client
+                .from('albums')
+                .select('id')
+                .eq('artist_id', resolvedArtistId)
+            as List;
     if (albums.isEmpty) return false;
 
     final result = await client

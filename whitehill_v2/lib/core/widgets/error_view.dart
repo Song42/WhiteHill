@@ -13,25 +13,25 @@ class ErrorView extends StatelessWidget {
 
     final (icon, title, subtitle) = switch (error) {
       SongNetworkException e => (
-          Icons.wifi_off_rounded,
-          'No connection',
-          e.message,
-        ),
+        Icons.wifi_off_rounded,
+        'No connection',
+        e.message,
+      ),
       SongDatabaseException e => (
-          Icons.storage_rounded,
-          'Database error',
-          e.message,
-        ),
+        Icons.storage_rounded,
+        'Database error',
+        e.message,
+      ),
       SongNotFoundException e => (
-          Icons.search_off_rounded,
-          'Not found',
-          e.message,
-        ),
+        Icons.search_off_rounded,
+        'Not found',
+        e.message,
+      ),
       _ => (
-          Icons.error_outline_rounded,
-          'Something went wrong',
-          error.toString(),
-        ),
+        Icons.error_outline_rounded,
+        'Something went wrong',
+        error.toString(),
+      ),
     };
 
     return Center(
@@ -44,17 +44,16 @@ class ErrorView extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               title,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
               subtitle,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
+                color: colorScheme.onSurface.withValues(alpha: 0.6),
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
