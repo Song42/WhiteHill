@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -6,6 +5,7 @@ import '../../../../core/player/audio_download_provider.dart';
 import '../../../../core/player/player_provider.dart';
 import '../../../../core/providers/connectivity_provider.dart';
 import '../../../songs/domain/entities/song.dart';
+import 'vinyl_record.dart';
 
 class PlayerSection extends ConsumerStatefulWidget {
   final Song song;
@@ -116,47 +116,10 @@ class _PlayerSectionState extends ConsumerState<PlayerSection>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Album cover
-                  Container(
-                    width: 280,
-                    height: 280,
-                    decoration: BoxDecoration(
-                      color: colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 20,
-                          offset: Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: widget.song.coverUrl != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: CachedNetworkImage(
-                              imageUrl: widget.song.coverUrl!,
-                              fit: BoxFit.cover,
-                              memCacheWidth: 840, // 280 logical * 3x
-                              fadeInDuration: Duration.zero,
-                              fadeOutDuration: Duration.zero,
-                              placeholder: (_, _) => Icon(
-                                Icons.music_note_rounded,
-                                size: 88,
-                                color: colorScheme.onPrimaryContainer,
-                              ),
-                              errorWidget: (_, _, _) => Icon(
-                                Icons.music_note_rounded,
-                                size: 88,
-                                color: colorScheme.onPrimaryContainer,
-                              ),
-                            ),
-                          )
-                        : Icon(
-                            Icons.music_note_rounded,
-                            size: 88,
-                            color: colorScheme.onPrimaryContainer,
-                          ),
+                  // Vinyl record with album cover
+                  VinylRecord(
+                    coverUrl: widget.song.coverUrl,
+                    isPlaying: isThisPlaying,
                   ),
                   const SizedBox(height: 28),
                   // Title
