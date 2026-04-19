@@ -7,7 +7,8 @@ enum AppRole {
   admin,
   worshipLeader,
   worshipTeam,
-  member;
+  member,
+  guest;
 
   String get displayLabel {
     switch (this) {
@@ -39,6 +40,7 @@ const _dbRoleMap = {
   'worship_leader': AppRole.worshipLeader,
   'worship_team': AppRole.worshipTeam,
   'member': AppRole.member,
+  'guest': AppRole.guest,
 };
 
 class UserProfile {
