@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whitehill_v2/core/player/player_provider.dart';
+import 'package:whitehill_v2/core/providers/app_refresh.dart';
 import 'package:whitehill_v2/core/widgets/error_view.dart';
 import 'package:whitehill_v2/features/home/presentation/widgets/song_card.dart';
 import 'package:whitehill_v2/features/song_detail/presentation/screens/song_detail_screen.dart';
@@ -40,7 +41,7 @@ class HomeScreen extends ConsumerWidget {
             error: (e, _) => SliverFillRemaining(
               child: ErrorView(
                 error: e,
-                onRetry: () => ref.invalidate(selectedSongsProvider),
+                onRetry: () => refreshAll(ref),
               ),
             ),
             data: (songs) {

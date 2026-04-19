@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/error/app_error_handler.dart';
+import '../../../../core/providers/app_refresh.dart';
 
 import '../../../../core/player/player_provider.dart';
 import '../../../../core/widgets/error_view.dart';
@@ -48,10 +49,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     setState(() {});
   }
 
-  void _refresh() {
-    ref.invalidate(recentAlbumsProvider);
-    ref.invalidate(recentSongsProvider);
-  }
+  void _refresh() => refreshAll(ref);
 
   Future<void> _openSongDetail(String songId, {int initialPage = 0}) async {
     final song = await showDialog<Song>(
@@ -150,10 +148,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         SliverFillRemaining(
           child: ErrorView(
             error: albumsAsync.error ?? songsAsync.error ?? 'Unknown error',
-            onRetry: () {
-              ref.invalidate(searchAlbumsProvider);
-              ref.invalidate(searchSongsProvider);
-            },
+            onRetry: () => refreshAll(ref),
           ),
         ),
       ];
@@ -293,13 +288,22 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       ];
     }
 
+    if (albumsAsync.hasError && songsAsync.hasError) {
+      return [
+        SliverFillRemaining(
+          child: ErrorView(
+            error: albumsAsync.error ?? songsAsync.error!,
+            onRetry: _refresh,
+          ),
+        ),
+      ];
+    }
+
     return [
       // --- Albums section ---
       albumsAsync.when(
         loading: () => const SliverToBoxAdapter(),
-        error: (e, _) => SliverToBoxAdapter(
-          child: ErrorView(error: e, onRetry: _refresh),
-        ),
+        error: (_, _) => const SliverToBoxAdapter(),
         data: (albums) {
           if (albums.isEmpty) return const SliverToBoxAdapter();
           return SliverToBoxAdapter(
@@ -354,9 +358,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       // --- Recently Added songs section ---
       songsAsync.when(
         loading: () => const SliverToBoxAdapter(),
-        error: (e, _) => SliverToBoxAdapter(
-          child: ErrorView(error: e, onRetry: _refresh),
-        ),
+        error: (_, _) => const SliverToBoxAdapter(),
         data: (songs) {
           if (songs.isEmpty) return const SliverToBoxAdapter();
           return SliverMainAxisGroup(
