@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whitehill_v2/features/admin/presentation/providers/add_song_provider.dart';
@@ -241,20 +240,19 @@ class _AddSongStep1State extends ConsumerState<AddSongStep1> {
       clipBehavior: Clip.antiAlias,
       child: Row(
         children: [
-          CachedNetworkImage(
-            imageUrl: coverUrl,
+          SizedBox(
             width: 64,
             height: 64,
-            fit: BoxFit.cover,
-            placeholder: (_, _) => const SizedBox(
-              width: 64,
-              height: 64,
-              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-            ),
-            errorWidget: (_, _, _) => const SizedBox(
-              width: 64,
-              height: 64,
-              child: Icon(Icons.album, size: 32),
+            child: Image.network(
+              coverUrl,
+              fit: BoxFit.cover,
+              loadingBuilder: (_, child, progress) => progress == null
+                  ? child
+                  : const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+              errorBuilder: (_, _, _) =>
+                  const Center(child: Icon(Icons.album, size: 32)),
             ),
           ),
           const SizedBox(width: 12),

@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -120,17 +119,19 @@ class AddSongStep3 extends ConsumerWidget {
               constraints: const BoxConstraints(maxWidth: 500),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: CachedNetworkImage(
-                  imageUrl: existingCoverUrl,
+                child: Image.network(
+                  existingCoverUrl,
                   width: double.infinity,
                   fit: BoxFit.cover,
-                  placeholder: (_, _) => const AspectRatio(
-                    aspectRatio: 1,
-                    child: Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  ),
-                  errorWidget: (_, _, _) => const AspectRatio(
+                  loadingBuilder: (_, child, progress) => progress == null
+                      ? child
+                      : const AspectRatio(
+                          aspectRatio: 1,
+                          child: Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                  errorBuilder: (_, _, _) => const AspectRatio(
                     aspectRatio: 1,
                     child: Center(child: Icon(Icons.broken_image, size: 48)),
                   ),

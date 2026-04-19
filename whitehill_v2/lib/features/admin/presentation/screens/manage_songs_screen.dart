@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whitehill_v2/features/admin/presentation/providers/manage_songs_provider.dart';
@@ -58,12 +57,10 @@ class _ManageSongsScreenState extends ConsumerState<ManageSongsScreen> {
           width: 56,
           height: 56,
           child: song.coverUrl != null
-              ? CachedNetworkImage(
-                  imageUrl: song.coverUrl!,
+              ? Image.network(
+                  song.coverUrl!,
                   fit: BoxFit.cover,
-                  fadeInDuration: const Duration(milliseconds: 200),
-                  fadeOutDuration: const Duration(milliseconds: 200),
-                  errorWidget: (_, _, _) =>
+                  errorBuilder: (_, _, _) =>
                       const Icon(Icons.music_note, size: 24),
                 )
               : const Icon(Icons.music_note, size: 24),

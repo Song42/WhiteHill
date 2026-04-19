@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 class SongCard extends StatelessWidget {
@@ -101,12 +100,13 @@ class _Thumbnail extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             url != null
-                ? CachedNetworkImage(
-                    imageUrl: url!,
+                ? Image.network(
+                    url!,
                     fit: BoxFit.cover,
-                    memCacheWidth: 168, // 56 logical * 3x device pixel ratio
-                    placeholder: (_, _) => _placeholder(colorScheme),
-                    errorWidget: (_, _, _) => _placeholder(colorScheme),
+                    cacheWidth: 168, // 56 logical * 3x device pixel ratio
+                    loadingBuilder: (_, child, progress) =>
+                        progress == null ? child : _placeholder(colorScheme),
+                    errorBuilder: (_, _, _) => _placeholder(colorScheme),
                   )
                 : _placeholder(colorScheme),
             if (onPlayTap != null)

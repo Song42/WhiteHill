@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -69,16 +68,20 @@ class MiniPlayerBar extends ConsumerWidget {
                     child: song.coverUrl != null
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(6),
-                            child: CachedNetworkImage(
-                              imageUrl: song.coverUrl!,
+                            child: Image.network(
+                              song.coverUrl!,
                               fit: BoxFit.cover,
-                              memCacheWidth: 120, // 40 logical * 3x
-                              placeholder: (_, _) => Icon(
-                                Icons.music_note_rounded,
-                                size: 20,
-                                color: colorScheme.onPrimaryContainer,
-                              ),
-                              errorWidget: (_, _, _) => Icon(
+                              cacheWidth: 120, // 40 logical * 3x
+                              loadingBuilder: (_, child, progress) =>
+                                  progress == null
+                                      ? child
+                                      : Icon(
+                                          Icons.music_note_rounded,
+                                          size: 20,
+                                          color:
+                                              colorScheme.onPrimaryContainer,
+                                        ),
+                              errorBuilder: (_, _, _) => Icon(
                                 Icons.music_note_rounded,
                                 size: 20,
                                 color: colorScheme.onPrimaryContainer,

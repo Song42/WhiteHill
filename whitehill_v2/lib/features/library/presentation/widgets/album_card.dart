@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 class AlbumCard extends StatelessWidget {
@@ -29,12 +28,13 @@ class AlbumCard extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: coverUrl != null
-                  ? CachedNetworkImage(
-                      imageUrl: coverUrl!,
+                  ? Image.network(
+                      coverUrl!,
                       fit: BoxFit.cover,
-                      memCacheWidth: 400,
-                      placeholder: (_, _) => _placeholder(theme),
-                      errorWidget: (_, _, _) => _placeholder(theme),
+                      cacheWidth: 400,
+                      loadingBuilder: (_, child, progress) =>
+                          progress == null ? child : _placeholder(theme),
+                      errorBuilder: (_, _, _) => _placeholder(theme),
                     )
                   : _placeholder(theme),
             ),
