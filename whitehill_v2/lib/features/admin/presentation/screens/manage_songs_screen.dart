@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:whitehill_v2/core/error/app_error_handler.dart';
 import 'package:whitehill_v2/features/admin/presentation/providers/manage_songs_provider.dart';
 import 'package:whitehill_v2/features/songs/domain/entities/song.dart';
 
@@ -38,7 +39,7 @@ class _ManageSongsScreenState extends ConsumerState<ManageSongsScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
         ..clearSnackBars()
-        ..showSnackBar(SnackBar(content: Text('Failed to save: $e')));
+        ..showSnackBar(SnackBar(content: Text(resolveErrorMessage(e))));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -159,7 +160,7 @@ class _ManageSongsScreenState extends ConsumerState<ManageSongsScreen> {
           Expanded(
             child: filteredAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Failed to load songs: $e')),
+              error: (e, _) => Center(child: Text(resolveErrorMessage(e))),
               data: (songs) {
                 if (songs.isEmpty) {
                   return Center(

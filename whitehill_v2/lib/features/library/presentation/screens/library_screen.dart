@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/error/app_error_handler.dart';
+
 import '../../../../core/player/player_provider.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../song_detail/presentation/screens/song_detail_screen.dart';
@@ -546,7 +548,7 @@ class _SongLoadingDialog extends ConsumerWidget {
           Navigator.of(context).pop(null);
           ScaffoldMessenger.of(context)
             ..clearSnackBars()
-            ..showSnackBar(SnackBar(content: Text('Failed to load song: $e')));
+            ..showSnackBar(SnackBar(content: Text(resolveErrorMessage(e))));
         });
         return const SizedBox.shrink();
       },

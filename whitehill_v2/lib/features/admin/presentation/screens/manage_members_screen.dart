@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/error/app_error_handler.dart';
 import '../../../../core/providers/profile_provider.dart';
 import '../providers/manage_members_provider.dart';
 
@@ -21,7 +22,7 @@ class ManageMembersScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Failed to load members: $e'),
+              Text(resolveErrorMessage(e)),
               const SizedBox(height: 12),
               FilledButton(
                 onPressed: () => ref.invalidate(allMembersProvider),
@@ -206,7 +207,7 @@ class _ProfileModalContentState extends State<_ProfileModalContent> {
       if (mounted) {
         ScaffoldMessenger.of(context)
           ..clearSnackBars()
-          ..showSnackBar(SnackBar(content: Text('Failed to update role: $e')));
+          ..showSnackBar(SnackBar(content: Text(resolveErrorMessage(e))));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
