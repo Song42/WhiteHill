@@ -72,9 +72,10 @@ class SongRepositoryImpl implements SongRepository {
     final data = await _client
         .from('selected_songs')
         .select('song_id, songs($_songSelect)');
-    return (data as List).map((e) {
-      final songJson = e['songs'] as Map<String, dynamic>;
-      return SongModel.fromJson(_resolveJson(songJson));
+    return (data as List).expand((e) {
+      final songJson = e['songs'] as Map<String, dynamic>?;
+      if (songJson == null) return const <Song>[];
+      return [SongModel.fromJson(_resolveJson(songJson))];
     }).toList();
   });
 

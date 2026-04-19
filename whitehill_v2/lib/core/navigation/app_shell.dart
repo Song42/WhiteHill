@@ -6,13 +6,12 @@ import 'package:whitehill_v2/features/profile/presentation/screens/profile_scree
 
 import '../player/mini_player_bar.dart';
 import '../player/player_provider.dart';
+import '../providers/profile_provider.dart';
 
 final _navIndexProvider = StateProvider<int>((ref) => 0);
 
 class AppShell extends ConsumerWidget {
   const AppShell({super.key});
-
-  static const _screens = [HomeScreen(), LibraryScreen(), ProfileScreen()];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -20,11 +19,48 @@ class AppShell extends ConsumerWidget {
     final hasCurrentSong = ref.watch(
       globalPlayerProvider.select((s) => s.hasCurrentSong),
     );
+    final isGuest =
+        ref.watch(profileRoleProvider).valueOrNull == AppRole.guest;
 
-    final safeIndex = currentIndex.clamp(0, _screens.length - 1);
+    final screens = isGuest
+        ? const [HomeScreen(), ProfileScreen()]
+        : const [HomeScreen(), LibraryScreen(), ProfileScreen()];
+
+    final destinations = isGuest
+        ? const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_outlined),
+              selectedIcon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ]
+        : const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.library_music_outlined),
+              selectedIcon: Icon(Icons.library_music),
+              label: 'Library',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_outlined),
+              selectedIcon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ];
+
+    final safeIndex = currentIndex.clamp(0, screens.length - 1);
 
     return Scaffold(
-      body: IndexedStack(index: safeIndex, children: _screens),
+      body: IndexedStack(index: safeIndex, children: screens),
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -34,23 +70,7 @@ class AppShell extends ConsumerWidget {
             onDestinationSelected: (index) {
               ref.read(_navIndexProvider.notifier).state = index;
             },
-            destinations: const [
-              NavigationDestination(
-                icon: Icon(Icons.home_outlined),
-                selectedIcon: Icon(Icons.home),
-                label: 'Home',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.library_music_outlined),
-                selectedIcon: Icon(Icons.library_music),
-                label: 'Library',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.person_outlined),
-                selectedIcon: Icon(Icons.person),
-                label: 'Profile',
-              ),
-            ],
+            destinations: destinations,
           ),
         ],
       ),
