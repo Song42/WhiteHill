@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:whitehill_v2/core/error/app_error_handler.dart';
 import 'package:whitehill_v2/features/songs/domain/entities/song_exception.dart';
 
 class ErrorView extends StatelessWidget {
@@ -11,28 +12,13 @@ class ErrorView extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    final (icon, title, subtitle) = switch (error) {
-      SongNetworkException e => (
-        Icons.wifi_off_rounded,
-        'No connection',
-        e.message,
-      ),
-      SongDatabaseException e => (
-        Icons.storage_rounded,
-        'Database error',
-        e.message,
-      ),
-      SongNotFoundException e => (
-        Icons.search_off_rounded,
-        'Not found',
-        e.message,
-      ),
-      _ => (
-        Icons.error_outline_rounded,
-        'Something went wrong',
-        error.toString(),
-      ),
+    final (icon, title) = switch (error) {
+      SongNetworkException() => (Icons.wifi_off_rounded, 'No connection'),
+      SongDatabaseException() => (Icons.storage_rounded, 'Database error'),
+      SongNotFoundException() => (Icons.search_off_rounded, 'Not found'),
+      _ => (Icons.error_outline_rounded, 'Something went wrong'),
     };
+    final subtitle = resolveErrorMessage(error);
 
     return Center(
       child: Padding(

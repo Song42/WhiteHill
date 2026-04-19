@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/providers/app_refresh.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/providers/connectivity_provider.dart';
 import '../../../../core/providers/profile_provider.dart';
+import '../../../../core/widgets/error_view.dart';
 import '../../../admin/presentation/screens/add_song_screen.dart';
 import '../../../admin/presentation/screens/manage_members_screen.dart';
 import '../../../admin/presentation/screens/manage_songs_screen.dart';
@@ -24,7 +26,10 @@ class ProfileScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(32),
             child: profileAsync.when(
               loading: () => const CircularProgressIndicator(),
-              error: (e, _) => Text('Cannot load Profile: $e'),
+              error: (e, _) => ErrorView(
+                error: e,
+                onRetry: () => refreshAll(ref),
+              ),
               data: (profile) => Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

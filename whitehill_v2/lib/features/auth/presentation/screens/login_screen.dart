@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/error/app_error_handler.dart';
 import '../../../../core/providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -21,7 +22,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('로그인 실패: $e')));
+        ).showSnackBar(SnackBar(content: Text(resolveErrorMessage(e))));
       }
     } finally {
       if (mounted) setState(() => _loading = false);

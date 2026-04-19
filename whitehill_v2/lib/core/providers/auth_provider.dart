@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -35,10 +36,14 @@ class AuthStateNotifier extends StateNotifier<AsyncValue<Session?>> {
   late final StreamSubscription<AuthState> _subscription;
 
   Future<void> _updateLastSeen(String userId) async {
-    await _client
-        .from('profiles')
-        .update({'last_seen_at': DateTime.now().toUtc().toIso8601String()})
-        .eq('id', userId);
+    try {
+      await _client
+          .from('profiles')
+          .update({'last_seen_at': DateTime.now().toUtc().toIso8601String()})
+          .eq('id', userId);
+    } catch (e) {
+      debugPrint('_updateLastSeen failed: $e');
+    }
   }
 
   Future<void> signInWithGoogle() async {

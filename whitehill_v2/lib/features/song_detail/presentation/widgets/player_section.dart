@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -550,7 +551,13 @@ class _DownloadButton extends ConsumerWidget {
                 );
               } else if (newState.status == DownloadStatus.error) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Download failed: ${newState.error}')),
+                  SnackBar(
+                  content: Text(
+                    kDebugMode
+                        ? 'Download failed: ${newState.error}'
+                        : 'Download failed.',
+                  ),
+                ),
                 );
               }
             }
