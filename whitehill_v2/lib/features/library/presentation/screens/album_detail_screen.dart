@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,6 +9,7 @@ import '../../../song_detail/presentation/screens/song_detail_screen.dart';
 import '../../../songs/domain/entities/song.dart';
 import '../../domain/entities/album.dart';
 import '../providers/album_detail_provider.dart';
+import '../widgets/album_cover_vinyl.dart';
 
 class AlbumDetailScreen extends ConsumerStatefulWidget {
   final Album album;
@@ -25,6 +25,11 @@ class _AlbumDetailScreenState extends ConsumerState<AlbumDetailScreen> {
   bool _showTitleInAppBar = false;
 
   Album get album => widget.album;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   bool _onScrollNotification(ScrollNotification notification) {
     final keyContext = _titleKey.currentContext;
@@ -71,31 +76,15 @@ class _AlbumDetailScreenState extends ConsumerState<AlbumDetailScreen> {
               ),
             ),
 
-            // --- Centered square cover ---
+            // --- Album sleeve + vinyl record ---
             SliverToBoxAdapter(
               child: Center(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 280),
-                    child: AspectRatio(
-                      aspectRatio: 1,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: album.coverUrl != null
-                            ? CachedNetworkImage(
-                                imageUrl: album.coverUrl!,
-                                fit: BoxFit.cover,
-                                memCacheWidth: 900,
-                                placeholder: (_, _) => ColoredBox(
-                                  color: colorScheme.surfaceContainerHighest,
-                                ),
-                                errorWidget: (_, _, _) =>
-                                    _coverPlaceholder(colorScheme),
-                              )
-                            : _coverPlaceholder(colorScheme),
-                      ),
-                    ),
+                  child: AlbumCoverVinyl(
+                    coverUrl: album.coverUrl,
+                    title: album.title,
+                    artistName: album.artistName,
                   ),
                 ),
               ),
@@ -210,18 +199,6 @@ class _AlbumDetailScreenState extends ConsumerState<AlbumDetailScreen> {
     );
   }
 
-  Widget _coverPlaceholder(ColorScheme colorScheme) {
-    return ColoredBox(
-      color: colorScheme.surfaceContainerHighest,
-      child: Center(
-        child: Icon(
-          Icons.album_outlined,
-          size: 80,
-          color: colorScheme.onSurfaceVariant,
-        ),
-      ),
-    );
-  }
 }
 
 // ---------------------------------------------------------------------------

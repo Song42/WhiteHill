@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 class VinylRecord extends StatefulWidget {
@@ -85,18 +84,19 @@ class _VinylRecordState extends State<VinylRecord>
               ),
               child: widget.coverUrl != null
                   ? ClipOval(
-                      child: CachedNetworkImage(
-                        imageUrl: widget.coverUrl!,
+                      child: Image.network(
+                        widget.coverUrl!,
                         fit: BoxFit.cover,
-                        memCacheWidth: 840,
-                        fadeInDuration: Duration.zero,
-                        fadeOutDuration: Duration.zero,
-                        placeholder: (_, _) => Icon(
-                          Icons.music_note_rounded,
-                          size: coverSize * 0.4,
-                          color: colorScheme.onPrimaryContainer,
-                        ),
-                        errorWidget: (_, _, _) => Icon(
+                        cacheWidth: 840,
+                        loadingBuilder: (_, child, progress) =>
+                            progress == null
+                                ? child
+                                : Icon(
+                                    Icons.music_note_rounded,
+                                    size: coverSize * 0.4,
+                                    color: colorScheme.onPrimaryContainer,
+                                  ),
+                        errorBuilder: (_, _, _) => Icon(
                           Icons.music_note_rounded,
                           size: coverSize * 0.4,
                           color: colorScheme.onPrimaryContainer,

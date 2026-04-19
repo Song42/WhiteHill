@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -489,12 +488,13 @@ class _SearchResultTile extends StatelessWidget {
           width: 48,
           height: 48,
           child: thumbnailUrl != null
-              ? CachedNetworkImage(
-                  imageUrl: thumbnailUrl!,
+              ? Image.network(
+                  thumbnailUrl!,
                   fit: BoxFit.cover,
-                  memCacheWidth: 144,
-                  placeholder: (_, _) => _placeholder(colorScheme),
-                  errorWidget: (_, _, _) => _placeholder(colorScheme),
+                  cacheWidth: 144,
+                  loadingBuilder: (_, child, progress) =>
+                      progress == null ? child : _placeholder(colorScheme),
+                  errorBuilder: (_, _, _) => _placeholder(colorScheme),
                 )
               : _placeholder(colorScheme),
         ),
