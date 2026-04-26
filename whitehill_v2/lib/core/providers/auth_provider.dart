@@ -50,6 +50,7 @@ class AuthStateNotifier extends StateNotifier<AsyncValue<Session?>> {
     await _client.auth.signInWithOAuth(
       OAuthProvider.google,
       redirectTo: 'com.example.whitehill2://login-callback/',
+      queryParams: {'prompt': 'select_account'},
     );
   }
 
